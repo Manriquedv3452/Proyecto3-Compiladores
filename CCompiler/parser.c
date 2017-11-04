@@ -1,5 +1,3 @@
-#include "getToken.c"
-
 #define CNRM  "\x1B[0m"
 #define CRED  "\x1B[31;1m"
 #define CGRN  "\x1B[32;1m"
@@ -20,7 +18,6 @@ char fileNameParse[50];
 char lineCode[5000];
 int numberOfErrors = 0;
 FILE *FileTemp;
-FILE *errors;
 
 int parser(char fileNamePar[])
 {
@@ -66,16 +63,11 @@ void printError(char *errorType, char *token, int line, int previousColumn, int 
 	//PRINT ERROR WITH COLORS
 	if (strcmp(errorType, "lexical error") == 0)
 	{
-		errors = fopen("errors.txt", "a");
-		fprintf(errors, "\\verb|%s:%d:%d:| \\textcolor{red}{%s}: \\verb|'%s'| %s\\newline", fileNameParse, line, column, errorType, token, errorInfo);
-		fclose(errors);
 		printf("%s%s:%d:%d: %s%s: %s'%s' %s\n", CWHTN, fileNameParse, line, column, CRED, errorType, CWHT, token, errorInfo);
 
 	}
 	else 
 	{
-		errors = fopen("errors.txt", "a");
-		fprintf(errors, "\\verb|%s:%d:%d:| \\textcolor{red}{%s}: ", fileNameParse, line, previousColumn + 1, errorType);
 		
 		printf("%s%s:%d:%d: %s%s: %s", CWHTN, fileNameParse, line, previousColumn + 1, CRED, errorType, CWHT);
 		
@@ -97,7 +89,6 @@ void printError(char *errorType, char *token, int line, int previousColumn, int 
 
 				while (j < strlen(errorInfo))
 				{
-					fprintf(errors, "\\verb|%c|", errorInfo[j]);
 					printf("%c", errorInfo[j]);
 					j ++;
 				}
@@ -106,41 +97,34 @@ void printError(char *errorType, char *token, int line, int previousColumn, int 
 				{
 					token = "string constant";
 				}
-				fprintf(errors, " before \\verb|'%s'| token \\newline", token);
-				printf(" before %s'%s'%s token \n", CWHTN, token, CWHT);
+				if (strcmp(errorType, "syntax error") == 0)
+					printf(" before %s'%s'%s token \n", CWHTN, token, CWHT);
+				else
+					printf("\n");
 			}
 			else 
 			{
 				j = 14;
 				while (j < strlen(errorInfo))
 				{
-					fprintf(errors, "\\verb|%c|", errorInfo[j]);
 					printf("%c", errorInfo[j]);
 					j ++;
 				}
-				fprintf(errors, "\\newline");
 				printf("\n");
 			}
 		}
-		fclose(errors);
 		column = previousColumn;
 		
 	}
 
 
 	//PRINT LINE OF CODE WITH CURSOR
-	errors = fopen("errors.txt", "a");
-	fprintf(errors, "\\verb|%s|\\newline", lineCode);
-
 	printf("%s\n", lineCode);
 
 	for (int i = 0; i < column; i++)
 	{
-		fprintf(errors, "\\verb| |");
 		printf(" ");
 	}
-	fprintf(errors, "\\textcolor{green}{1}\\newline\\newline@@");
-	fclose(errors);
 
 	printf("%s^%s\n\n", CGRN, CWHT);
 }

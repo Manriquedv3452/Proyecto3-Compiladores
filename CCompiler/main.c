@@ -13,6 +13,7 @@ FILE *file;
 int lineNumber = 1;
 char fileName[50];
 
+extern void initializeList(void);
 //extern void scanner(char* fileName);
 //#include "preprocessor/preprocessor.c"
 
@@ -27,27 +28,11 @@ int main(int argc, char *argv[])
 		strcpy(fileName, argv[1]);
 		validFile = fopen(fileName, "r");
 	}
-	else if (argc == 3)
-	{
-		if (strcmp(argv[1], "-B") == 0)
-		{
-			strcpy(fileName, argv[2]);
-			validFile = fopen(fileName, "r");
-		}
-		else if (strcmp(argv[2], "-B") == 0)
-		{
-			strcpy(fileName, argv[2]);
-			validFile = fopen(fileName, "r");
-		}
-		else
-		{
-			printf("BEAMER OPTION '-B' IS NOT VALID, PLEASE TRY AGAIN!\n\nNOTE: './syntaxAnalyzer <filename>' or './syntaxAnalyzer -B <filename>'\n");
-			return 0;
-		}
-	}
+	
+
 	else
 	{
-		printf("FILE ARGUMENT NOT FOUND OR IS NOT VALID!\n\nNOTE: './syntaxAnalyzer <filename>' or './syntaxAnalyzer -B <filename>'\n");
+		printf("FILE ARGUMENT NOT FOUND OR IS NOT VALID!\n\nTO RUN: './syntaxAnalyzer <filename>' \n\n");
 		return 0;
 	}
 
@@ -58,6 +43,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	fclose(validFile);
+	initializeList();
 
 	/*output = freopen("temp.c", "w", stdout);
 	fclose(output);
@@ -71,6 +57,7 @@ int main(int argc, char *argv[])
 	
 	//Start scanning 
 	parser(fileName);//"temp.c");
+	//printTOP();
 	//printf("\n\n----------------------------------GCC---------------------------------------------\n\n");
 	//system("gcc -Wpedantic temp.c");
 	

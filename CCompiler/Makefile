@@ -1,5 +1,5 @@
 main: y.tab.c y.tab.h lex.yy.c
-	gcc -o syntaxAnalyzer main.c scanner.c beamer.c y.tab.c lex.yy.c -lfl -ly -ll -lm 
+	gcc -o proyecto3 main.c getToken.c y.tab.c lex.yy.c -lfl -ly -ll -lm 
  
 y.tab.c y.tab.h:      
 	bison -yd bison.y
