@@ -1,9 +1,17 @@
-int r = 5, v = 2;
+int r = 5, v = 2, v, v, v, v;
 
 int main()
 {
-	int i, k, j = k, h;
-	int var1 = 5;
-	char var2 = 8;
-	int var3 = var1 + var2;
+	
+		int i, k, v, h;
+		int var1;
+		//printf("%d\n", v);
+		int var2;
+		int var3 = var1 + var2 + l + m;
+		int ff = l + m;
+		int l;
+		int m;
+		//printf("%d\n", v);
+	
 }
+

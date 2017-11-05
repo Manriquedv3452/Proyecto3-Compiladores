@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include "semanticStructs.h"
+#include "semanticStack.h"
+#include "symbolTable.h"
 #define FALSE 0
 #define TRUE 1
 #define CWHT  "\x1B[0m"
@@ -16,11 +17,18 @@ void process_literal(void);
 void process_id(void);
 void save_id(void);
 void process_op(void);
+void process_id(void);
 void declaration_end(void);
+void addTableContext(void);
+void checkForDeclaredError(char *token, SemanticRecord* R);
 
 void yyerror(const char *);
+void yynote(char *noteInfo, int line, int column, int writeCode);
 extern int getToken(void);
 extern char* yytext;
+extern int yylineno;
+extern int column;
+extern int previousColumn;
 extern void print(void);
 
 extern char* previousToken;
@@ -29,7 +37,9 @@ extern char* previousToken;
 #define YYERROR_VERBOSE 1
 
 int errorFound = 0;
-int inDeclaration = FALSE;
+int inFunction = FALSE;
+int inContext = FALSE;
+int unDecleared = FALSE;
 
 %}
 %token	IDENTIFIER I_CONSTANT F_CONSTANT STRING_LITERAL FUNC_NAME SIZEOF
@@ -53,7 +63,7 @@ int inDeclaration = FALSE;
 %%
 
 primary_expression
-	: IDENTIFIER				
+	: IDENTIFIER			{ process_id(); }		
 	| constant
 	| string
 	| '(' expression ')'			
@@ -292,7 +302,7 @@ constant_expression
 
 declaration
 	: declaration_specifiers  ';'
-	| declaration_specifiers  init_declarator_list ';'   { inDeclaration = FALSE;/* save in TS */}	
+	| declaration_specifiers  init_declarator_list ';'   { declaration_end(); }	
 	| static_assert_declaration
 	//| declaration_specifiers init_declarator_list error		{ yyerrok; }
 	| declaration_specifiers error ';'			    { yyerrok; }//err*/
@@ -644,7 +654,7 @@ labeled_statement
 
 compound_statement
 	: '{' '}'
-	| '{'  block_item_list '}'
+	| '{' block_item_list '}' 
 	| '{' block_item_list error					{ yyerrok; }
 	;
 
@@ -742,8 +752,8 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator declaration_list compound_statement				
-	| declaration_specifiers declarator compound_statement					
+	: declaration_specifiers declarator declaration_list  { inContext = TRUE; popRecord(); popRecord(); pushTable(); } compound_statement	{ inContext = FALSE; popTable();}			
+	| declaration_specifiers declarator  { inContext = TRUE; popRecord(); popRecord(); pushTable(); } compound_statement	{ unDecleared = FALSE; inContext = FALSE; popTable();}				
 	
 	//| declaration_specifiers declarator error compound_statement					{ yyerrok; }
 	//| error declarator compound_statement								{ yyerrok; }	
@@ -763,8 +773,6 @@ declaration_list
 %%
 
 //functions
-void save_type(void);
-void process_literal(void);
 
 
 void save_type(void)
@@ -773,6 +781,7 @@ void save_type(void)
 	
 	RS = createSemanticRecord(TYPE);
 	RS -> currentToken = previousToken;
+	RS -> type = yychar;
 
 	
 	pushRecord(RS);
@@ -783,28 +792,52 @@ void save_type(void)
 void save_id(void)
 {
 	char* token = strdup(yytext);
-	if (!search(token))
+	int pos = search(token);
+	if (!inContext)
+	{
+		if (pos == -1)
+		{
+	
+			SemanticRecord *RS;
+	
+			RS = createSemanticRecord(IDENTIFIER);
+			RS -> currentToken = token;
+			RS -> line = yylineno;
+			RS -> column = previousColumn;
+	
+	
+			pushRecord(RS);
+			//printList();
+		}
+	} 
+	else if (pos == -1)
 	{
 		SemanticRecord *RS;
 	
-		RS = createSemanticRecord(ID);
+		RS = createSemanticRecord(IDENTIFIER);
 		RS -> currentToken = token;
-	
+		RS -> line = yylineno;
+		RS -> column = previousColumn;
 	
 		pushRecord(RS);
 		//printList();
 	}
 	else 
 	{
+		SemanticRecord* RS = getSemanticRecordInPos(pos);
 		char error[100] = "";
+		char note[100] = "";
 		sprintf(error, "semantic error, redeclaration of %s'%s'%s with no linkage", CWHTN, token, CWHT);
 		yyerror(error);
+		sprintf(note, "note, previous declaration of %s‘%s’%s was here", CWHTN, RS -> currentToken, CWHT);
+		yynote(note, RS -> line, RS -> column, TRUE);
 	}
 }
 
 
 void declaration_end(void)
 {
+	//printList();
 	char* tokenValue;
 	char* tokenName;
 
@@ -813,11 +846,22 @@ void declaration_end(void)
 
 	SemanticRecord *RS;
 	RS = getTopRecord();
-
+	
 	while (RS -> kind != TYPE)
 	{
-		//RECORRER E INSERTAR EN LA TABLA DE SIMBOLOS
+		if (RS -> kind == ERROR)
+		{
+			appendSymbol(RS -> currentToken, RS -> line, RS -> column, ERROR, stackPos);
+		}
+		else
+		{
+			appendSymbol(RS -> currentToken, RS -> line, RS -> column, dataType -> type, stackPos);
+		}
+		popRecord();
+		RS = getTopRecord();
 	}
+	popRecord();
+
 
 	
 }
@@ -837,8 +881,6 @@ void process_literal(void)
 	RS -> currentToken = tokenValue;
 	
 	pushRecord(RS);
-
-	printList();
 }
 
 void process_op(void)
@@ -852,6 +894,69 @@ void process_op(void)
 	pushRecord(RS);
 }
 
+
+void process_id(void)
+{
+	DO_Datos* object;
+	SemanticRecord *RS;
+	char *id;
+
+	id = strdup(yytext);
+	
+	RS = createSemanticRecord(DATAOBJECT);
+	RS -> currentToken = id;	
+	RS -> line = yylineno;
+	RS -> column = previousColumn;
+
+	object = (DO_Datos*) RS -> dataBlock;
+	object -> type = NAME;
+
+	if (search(id) == -1)
+	{
+		if (!look_up_TS(id))
+		{
+			RS -> currentToken = id;
+			RS -> kind = ERROR;
+			checkForDeclaredError(id, RS);
+			object -> type = ERROR;
+		}
+	}
+	else
+	{
+		object -> varName = id;
+	
+		RS -> dataBlock = object;
+	}
+	
+
+	pushRecord(RS);
+	
+}
+
+void checkForDeclaredError(char *token, SemanticRecord* R)
+{
+	DO_Datos *datos;
+	SemanticRecord *RS;
+	int tokenPos = searhErrorToken(token);
+	if (tokenPos == -1)
+	{
+		if (!look_up_TS(token))
+		{
+			char error[100];
+			sprintf(error, "semantic error, %s'%s'%s undeclared (first use in this function)", CWHTN, token, CWHT);
+			yyerror(error);
+
+			if (unDecleared == FALSE)
+			{
+				char note[100];
+				sprintf(note, "note, each undeclared identifier is reported only once for each function it appears in");
+				yynote(note, R -> line, R -> column, FALSE);
+				unDecleared = TRUE;
+			}
+		}
+	}
+	
+}
 
 
 

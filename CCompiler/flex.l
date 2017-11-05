@@ -43,9 +43,11 @@ EOL [\n]
 #define MAXLEN 100
 
 extern void printError(char *errorType, char *token, int line, int previousColumn, int column, const char* errorInfo, int cursorPos); //main.c
+extern void printNote(char* note, char *token, int line, int column, const char *errorInfo, int writeCode);
 extern char lineCode[5000]; 							    //main.c
 
 extern void yyerror(const char *);  /* prints grammar violation message */
+extern void yynote(char *noteInfo, int line, int column, int writeCode); 	//prints note
 
 extern int sym_type(const char *);  /* returns type from symbol table */
 
@@ -198,6 +200,18 @@ void yyerror(const char *s)
 	printError(errorType, yytext, yylineno, previousColumn, column, s, cursorPos); 
 }
 
+void yynote(char *noteInfo, int line, int column, int writeCode)
+{
+	int i = 0;
+	char note[MAXLEN];
+	while (i < strlen(noteInfo) && noteInfo[i] != ',')
+	{
+		note[i] = noteInfo[i];
+		i++;
+	}
+	note[i] = '\0';
+	printNote(note, yytext, line, column, noteInfo, writeCode); 
+}
 
 static void comment(void)
 {

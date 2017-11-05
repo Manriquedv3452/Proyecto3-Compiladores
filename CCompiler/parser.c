@@ -12,6 +12,8 @@ extern int yyparse(void);
 extern FILE* yyin;
 
 void printError(char *errorType, char *token, int line, int previousColumn, int column, const char *errorInfo, int cursorPos);
+void printLineCodeInfo(int column);
+void printNote(char *note,  char *token, int line, int column, const char *errorInfo, int writeCode);
 int parser(char* fileNameParse);
 
 char fileNameParse[50];
@@ -32,7 +34,7 @@ int parser(char fileNamePar[])
 	
 	
 		fclose(FileTemp);
-		printf("Compilation finished with %d syntax-lexical errors.\n", numberOfErrors);
+		printf("Compilation finished with %d errors.\n", numberOfErrors);
 	}
 
 	return 0;
@@ -117,7 +119,11 @@ void printError(char *errorType, char *token, int line, int previousColumn, int 
 		
 	}
 
+	printLineCodeInfo(column);
+}
 
+void printLineCodeInfo(int column)
+{
 	//PRINT LINE OF CODE WITH CURSOR
 	printf("%s\n", lineCode);
 
@@ -129,3 +135,20 @@ void printError(char *errorType, char *token, int line, int previousColumn, int 
 	printf("%s^%s\n\n", CGRN, CWHT);
 }
 
+void printNote(char* note, char *token, int line, int column, const char *noteInfo, int writeCode)
+{
+	printf("%s%s:%d:%d: %s%s: %s", CWHTN, fileNameParse, line, column, CCYN, note, CWHT);
+	
+	
+	
+	int j = 5;
+	while (j < strlen(noteInfo))
+	{
+		printf("%c", noteInfo[j]);
+		j ++;
+	}
+	printf("\n");
+
+	if (writeCode != 0)
+		printLineCodeInfo(column);
+}

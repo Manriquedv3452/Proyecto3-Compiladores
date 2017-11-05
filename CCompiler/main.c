@@ -14,6 +14,7 @@ int lineNumber = 1;
 char fileName[50];
 
 extern void initializeList(void);
+extern void initializeTable(void);
 //extern void scanner(char* fileName);
 //#include "preprocessor/preprocessor.c"
 
@@ -44,6 +45,7 @@ int main(int argc, char *argv[])
 	}
 	fclose(validFile);
 	initializeList();
+	initializeTable();
 
 	/*output = freopen("temp.c", "w", stdout);
 	fclose(output);

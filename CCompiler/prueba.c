@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "semanticStructs.h"
+#include "semanticStackStructs.h"
 
 
 void process_literal()
