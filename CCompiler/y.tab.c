@@ -88,7 +88,7 @@ void addTableContext(void);
 void checkForDeclaredError(char *token, SemanticRecord* R);
 
 void yyerror(const char *);
-void yynote(char *noteInfo, int line, int column, int writeCode);
+void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi);
 extern int getToken(void);
 extern char* yytext;
 extern int yylineno;
@@ -97,6 +97,7 @@ extern int previousColumn;
 extern void print(void);
 
 extern char* previousToken;
+extern int cursorPos;
 
 #define yylex getToken
 #define YYERROR_VERBOSE 1
@@ -107,7 +108,7 @@ int inContext = FALSE;
 int unDecleared = FALSE;
 
 
-#line 111 "y.tab.c" /* yacc.c:339  */
+#line 112 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -308,7 +309,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 312 "y.tab.c" /* yacc.c:358  */
+#line 313 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -613,47 +614,47 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    66,    66,    67,    68,    69,    70,    71,    72,    76,
-      77,    78,    82,    86,    87,    91,    92,    93,    97,    98,
-     100,   104,   105,   107,   108,   112,   113,   114,   115,   116,
-     117,   118,   119,   120,   121,   123,   124,   126,   127,   129,
-     130,   132,   133,   134,   141,   142,   145,   146,   150,   151,
-     152,   153,   154,   155,   156,   164,   165,   166,   167,   168,
-     169,   173,   174,   181,   182,   183,   184,   185,   186,   187,
-     188,   192,   193,   194,   196,   197,   199,   203,   204,   205,
-     206,   207,   211,   212,   213,   214,   215,   217,   219,   224,
-     225,   226,   227,   228,   232,   233,   234,   238,   239,   240,
-     244,   245,   246,   250,   251,   252,   256,   257,   258,   262,
-     263,   264,   265,   266,   270,   271,   273,   274,   278,   279,
-     280,   281,   282,   283,   284,   285,   286,   287,   288,   292,
-     293,   295,   296,   300,   304,   305,   306,   308,   309,   315,
-     316,   317,   318,   319,   320,   321,   322,   323,   324,   325,
-     329,   330,   331,   335,   336,   337,   341,   342,   343,   344,
-     345,   346,   350,   351,   352,   353,   354,   355,   356,   357,
-     358,   359,   360,   361,   362,   363,   364,   365,   369,   370,
-     371,   372,   373,   374,   375,   379,   380,   384,   385,   389,
-     390,   391,   395,   399,   400,   401,   402,   403,   407,   408,
-     409,   410,   414,   415,   416,   424,   425,   426,   427,   428,
-     429,   430,   435,   436,   438,   439,   443,   444,   446,   448,
-     452,   456,   457,   458,   459,   463,   464,   468,   469,   473,
-     474,   478,   479,   480,   481,   482,   483,   484,   485,   486,
-     487,   488,   489,   490,   491,   496,   497,   498,   502,   503,
-     504,   505,   510,   511,   512,   513,   515,   516,   517,   521,
-     522,   527,   528,   530,   534,   535,   536,   541,   542,   543,
-     547,   548,   550,   554,   555,   557,   558,   562,   563,   564,
-     568,   569,   570,   571,   572,   573,   574,   575,   576,   577,
-     578,   579,   580,   581,   582,   583,   584,   585,   586,   587,
-     588,   594,   595,   596,   598,   599,   600,   604,   605,   606,
-     607,   608,   609,   613,   615,   619,   620,   624,   625,   626,
-     627,   631,   632,   636,   637,   638,   639,   640,   641,   645,
-     646,   647,   649,   650,   651,   652,   656,   657,   658,   662,
-     663,   667,   668,   672,   673,   675,   679,   680,   681,   683,
-     684,   685,   686,   687,   688,   689,   690,   691,   695,   696,
-     697,   698,   699,   700,   704,   705,   706,   707,   709,   710,
-     711,   712,   713,   715,   717,   718,   719,   721,   722,   723,
-     724,   725,   726,   727,   731,   732,   733,   734,   735,   736,
-     737,   738,   739,   740,   741,   745,   746,   750,   751,   755,
-     755,   756,   756,   769,   770
+       0,    67,    67,    68,    69,    70,    71,    72,    73,    77,
+      78,    79,    83,    87,    88,    92,    93,    94,    98,    99,
+     101,   105,   106,   108,   109,   113,   114,   115,   116,   117,
+     118,   119,   120,   121,   122,   124,   125,   127,   128,   130,
+     131,   133,   134,   135,   142,   143,   146,   147,   151,   152,
+     153,   154,   155,   156,   157,   165,   166,   167,   168,   169,
+     170,   174,   175,   182,   183,   184,   185,   186,   187,   188,
+     189,   193,   194,   195,   197,   198,   200,   204,   205,   206,
+     207,   208,   212,   213,   214,   215,   216,   218,   220,   225,
+     226,   227,   228,   229,   233,   234,   235,   239,   240,   241,
+     245,   246,   247,   251,   252,   253,   257,   258,   259,   263,
+     264,   265,   266,   267,   271,   272,   274,   275,   279,   280,
+     281,   282,   283,   284,   285,   286,   287,   288,   289,   293,
+     294,   296,   297,   301,   305,   306,   307,   309,   310,   316,
+     317,   318,   319,   320,   321,   322,   323,   324,   325,   326,
+     330,   331,   332,   336,   337,   338,   342,   343,   344,   345,
+     346,   347,   351,   352,   353,   354,   355,   356,   357,   358,
+     359,   360,   361,   362,   363,   364,   365,   366,   370,   371,
+     372,   373,   374,   375,   376,   380,   381,   385,   386,   390,
+     391,   392,   396,   400,   401,   402,   403,   404,   408,   409,
+     410,   411,   415,   416,   417,   425,   426,   427,   428,   429,
+     430,   431,   436,   437,   439,   440,   444,   445,   447,   449,
+     453,   457,   458,   459,   460,   464,   465,   469,   470,   474,
+     475,   479,   480,   481,   482,   483,   484,   485,   486,   487,
+     488,   489,   490,   491,   492,   497,   498,   499,   503,   504,
+     505,   506,   511,   512,   513,   514,   516,   517,   518,   522,
+     523,   528,   529,   531,   535,   536,   537,   542,   543,   544,
+     548,   549,   551,   555,   556,   558,   559,   563,   564,   565,
+     569,   570,   571,   572,   573,   574,   575,   576,   577,   578,
+     579,   580,   581,   582,   583,   584,   585,   586,   587,   588,
+     589,   595,   596,   597,   599,   600,   601,   605,   606,   607,
+     608,   609,   610,   614,   616,   620,   621,   625,   626,   627,
+     628,   632,   633,   637,   638,   639,   640,   641,   642,   646,
+     647,   648,   650,   651,   652,   653,   657,   658,   659,   663,
+     664,   668,   669,   673,   674,   676,   680,   681,   682,   684,
+     685,   686,   687,   688,   689,   690,   691,   692,   696,   697,
+     698,   699,   700,   701,   705,   706,   707,   708,   710,   711,
+     712,   713,   714,   716,   718,   719,   720,   722,   723,   724,
+     725,   726,   727,   728,   732,   733,   734,   735,   736,   737,
+     738,   739,   740,   741,   742,   746,   747,   751,   752,   756,
+     756,   757,   757,   770,   771
 };
 #endif
 
@@ -3637,841 +3638,841 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 66 "bison.y" /* yacc.c:1646  */
+#line 67 "bison.y" /* yacc.c:1646  */
     { process_id(); }
-#line 3643 "y.tab.c" /* yacc.c:1646  */
+#line 3644 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 71 "bison.y" /* yacc.c:1646  */
+#line 72 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3649 "y.tab.c" /* yacc.c:1646  */
+#line 3650 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 72 "bison.y" /* yacc.c:1646  */
+#line 73 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3655 "y.tab.c" /* yacc.c:1646  */
+#line 3656 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 76 "bison.y" /* yacc.c:1646  */
+#line 77 "bison.y" /* yacc.c:1646  */
     { process_literal(); }
-#line 3661 "y.tab.c" /* yacc.c:1646  */
+#line 3662 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 92 "bison.y" /* yacc.c:1646  */
+#line 93 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3667 "y.tab.c" /* yacc.c:1646  */
+#line 3668 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 93 "bison.y" /* yacc.c:1646  */
+#line 94 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3673 "y.tab.c" /* yacc.c:1646  */
+#line 3674 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 100 "bison.y" /* yacc.c:1646  */
+#line 101 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3679 "y.tab.c" /* yacc.c:1646  */
+#line 3680 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 107 "bison.y" /* yacc.c:1646  */
+#line 108 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3685 "y.tab.c" /* yacc.c:1646  */
+#line 3686 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 108 "bison.y" /* yacc.c:1646  */
+#line 109 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3691 "y.tab.c" /* yacc.c:1646  */
+#line 3692 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 123 "bison.y" /* yacc.c:1646  */
+#line 124 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3697 "y.tab.c" /* yacc.c:1646  */
+#line 3698 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 124 "bison.y" /* yacc.c:1646  */
+#line 125 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3703 "y.tab.c" /* yacc.c:1646  */
+#line 3704 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 126 "bison.y" /* yacc.c:1646  */
+#line 127 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3709 "y.tab.c" /* yacc.c:1646  */
+#line 3710 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 127 "bison.y" /* yacc.c:1646  */
+#line 128 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3715 "y.tab.c" /* yacc.c:1646  */
+#line 3716 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 129 "bison.y" /* yacc.c:1646  */
+#line 130 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3721 "y.tab.c" /* yacc.c:1646  */
+#line 3722 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 130 "bison.y" /* yacc.c:1646  */
+#line 131 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3727 "y.tab.c" /* yacc.c:1646  */
+#line 3728 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 132 "bison.y" /* yacc.c:1646  */
+#line 133 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3733 "y.tab.c" /* yacc.c:1646  */
+#line 3734 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 133 "bison.y" /* yacc.c:1646  */
+#line 134 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3739 "y.tab.c" /* yacc.c:1646  */
+#line 3740 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 134 "bison.y" /* yacc.c:1646  */
+#line 135 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3745 "y.tab.c" /* yacc.c:1646  */
+#line 3746 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 145 "bison.y" /* yacc.c:1646  */
+#line 146 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3751 "y.tab.c" /* yacc.c:1646  */
+#line 3752 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 146 "bison.y" /* yacc.c:1646  */
+#line 147 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3757 "y.tab.c" /* yacc.c:1646  */
+#line 3758 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 185 "bison.y" /* yacc.c:1646  */
+#line 186 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3763 "y.tab.c" /* yacc.c:1646  */
+#line 3764 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 186 "bison.y" /* yacc.c:1646  */
+#line 187 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3769 "y.tab.c" /* yacc.c:1646  */
+#line 3770 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 187 "bison.y" /* yacc.c:1646  */
+#line 188 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3775 "y.tab.c" /* yacc.c:1646  */
+#line 3776 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 188 "bison.y" /* yacc.c:1646  */
+#line 189 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3781 "y.tab.c" /* yacc.c:1646  */
+#line 3782 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 196 "bison.y" /* yacc.c:1646  */
+#line 197 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3787 "y.tab.c" /* yacc.c:1646  */
+#line 3788 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 197 "bison.y" /* yacc.c:1646  */
+#line 198 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3793 "y.tab.c" /* yacc.c:1646  */
+#line 3794 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 199 "bison.y" /* yacc.c:1646  */
+#line 200 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3799 "y.tab.c" /* yacc.c:1646  */
+#line 3800 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 80:
-#line 206 "bison.y" /* yacc.c:1646  */
+#line 207 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3805 "y.tab.c" /* yacc.c:1646  */
+#line 3806 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 81:
-#line 207 "bison.y" /* yacc.c:1646  */
+#line 208 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3811 "y.tab.c" /* yacc.c:1646  */
+#line 3812 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 88:
-#line 219 "bison.y" /* yacc.c:1646  */
+#line 220 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3817 "y.tab.c" /* yacc.c:1646  */
+#line 3818 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 92:
-#line 227 "bison.y" /* yacc.c:1646  */
+#line 228 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3823 "y.tab.c" /* yacc.c:1646  */
+#line 3824 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 93:
-#line 228 "bison.y" /* yacc.c:1646  */
+#line 229 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3829 "y.tab.c" /* yacc.c:1646  */
+#line 3830 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 96:
-#line 234 "bison.y" /* yacc.c:1646  */
+#line 235 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3835 "y.tab.c" /* yacc.c:1646  */
+#line 3836 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 99:
-#line 240 "bison.y" /* yacc.c:1646  */
+#line 241 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3841 "y.tab.c" /* yacc.c:1646  */
+#line 3842 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 102:
-#line 246 "bison.y" /* yacc.c:1646  */
+#line 247 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3847 "y.tab.c" /* yacc.c:1646  */
+#line 3848 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 105:
-#line 252 "bison.y" /* yacc.c:1646  */
+#line 253 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3853 "y.tab.c" /* yacc.c:1646  */
+#line 3854 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 108:
-#line 258 "bison.y" /* yacc.c:1646  */
+#line 259 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3859 "y.tab.c" /* yacc.c:1646  */
+#line 3860 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 111:
-#line 264 "bison.y" /* yacc.c:1646  */
+#line 265 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3865 "y.tab.c" /* yacc.c:1646  */
+#line 3866 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 112:
-#line 265 "bison.y" /* yacc.c:1646  */
+#line 266 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3871 "y.tab.c" /* yacc.c:1646  */
+#line 3872 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 113:
-#line 266 "bison.y" /* yacc.c:1646  */
+#line 267 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3877 "y.tab.c" /* yacc.c:1646  */
+#line 3878 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 116:
-#line 273 "bison.y" /* yacc.c:1646  */
+#line 274 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3883 "y.tab.c" /* yacc.c:1646  */
+#line 3884 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 117:
-#line 274 "bison.y" /* yacc.c:1646  */
+#line 275 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3889 "y.tab.c" /* yacc.c:1646  */
+#line 3890 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 131:
-#line 295 "bison.y" /* yacc.c:1646  */
+#line 296 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3895 "y.tab.c" /* yacc.c:1646  */
+#line 3896 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 132:
-#line 296 "bison.y" /* yacc.c:1646  */
+#line 297 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3901 "y.tab.c" /* yacc.c:1646  */
+#line 3902 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 135:
-#line 305 "bison.y" /* yacc.c:1646  */
+#line 306 "bison.y" /* yacc.c:1646  */
     { declaration_end(); }
-#line 3907 "y.tab.c" /* yacc.c:1646  */
+#line 3908 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 137:
-#line 308 "bison.y" /* yacc.c:1646  */
+#line 309 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3913 "y.tab.c" /* yacc.c:1646  */
+#line 3914 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 138:
-#line 309 "bison.y" /* yacc.c:1646  */
+#line 310 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3919 "y.tab.c" /* yacc.c:1646  */
+#line 3920 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 140:
-#line 316 "bison.y" /* yacc.c:1646  */
+#line 317 "bison.y" /* yacc.c:1646  */
     { save_type(); }
-#line 3925 "y.tab.c" /* yacc.c:1646  */
+#line 3926 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 142:
-#line 318 "bison.y" /* yacc.c:1646  */
+#line 319 "bison.y" /* yacc.c:1646  */
     { save_type(); }
-#line 3931 "y.tab.c" /* yacc.c:1646  */
+#line 3932 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 144:
-#line 320 "bison.y" /* yacc.c:1646  */
+#line 321 "bison.y" /* yacc.c:1646  */
     { save_type(); }
-#line 3937 "y.tab.c" /* yacc.c:1646  */
+#line 3938 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 146:
-#line 322 "bison.y" /* yacc.c:1646  */
+#line 323 "bison.y" /* yacc.c:1646  */
     { save_type(); }
-#line 3943 "y.tab.c" /* yacc.c:1646  */
+#line 3944 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 148:
-#line 324 "bison.y" /* yacc.c:1646  */
+#line 325 "bison.y" /* yacc.c:1646  */
     { save_type(); }
-#line 3949 "y.tab.c" /* yacc.c:1646  */
+#line 3950 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 149:
-#line 325 "bison.y" /* yacc.c:1646  */
+#line 326 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3955 "y.tab.c" /* yacc.c:1646  */
+#line 3956 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 152:
-#line 331 "bison.y" /* yacc.c:1646  */
+#line 332 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3961 "y.tab.c" /* yacc.c:1646  */
+#line 3962 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 155:
-#line 337 "bison.y" /* yacc.c:1646  */
+#line 338 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3967 "y.tab.c" /* yacc.c:1646  */
+#line 3968 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 181:
-#line 372 "bison.y" /* yacc.c:1646  */
+#line 373 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3973 "y.tab.c" /* yacc.c:1646  */
+#line 3974 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 182:
-#line 373 "bison.y" /* yacc.c:1646  */
+#line 374 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3979 "y.tab.c" /* yacc.c:1646  */
+#line 3980 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 183:
-#line 374 "bison.y" /* yacc.c:1646  */
+#line 375 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3985 "y.tab.c" /* yacc.c:1646  */
+#line 3986 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 184:
-#line 375 "bison.y" /* yacc.c:1646  */
+#line 376 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3991 "y.tab.c" /* yacc.c:1646  */
+#line 3992 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 192:
-#line 395 "bison.y" /* yacc.c:1646  */
+#line 396 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 3997 "y.tab.c" /* yacc.c:1646  */
+#line 3998 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 197:
-#line 403 "bison.y" /* yacc.c:1646  */
+#line 404 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4003 "y.tab.c" /* yacc.c:1646  */
+#line 4004 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 200:
-#line 409 "bison.y" /* yacc.c:1646  */
+#line 410 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4009 "y.tab.c" /* yacc.c:1646  */
+#line 4010 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 201:
-#line 410 "bison.y" /* yacc.c:1646  */
+#line 411 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4015 "y.tab.c" /* yacc.c:1646  */
+#line 4016 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 210:
-#line 429 "bison.y" /* yacc.c:1646  */
+#line 430 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4021 "y.tab.c" /* yacc.c:1646  */
+#line 4022 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 211:
-#line 430 "bison.y" /* yacc.c:1646  */
+#line 431 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4027 "y.tab.c" /* yacc.c:1646  */
+#line 4028 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 214:
-#line 438 "bison.y" /* yacc.c:1646  */
+#line 439 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4033 "y.tab.c" /* yacc.c:1646  */
+#line 4034 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 215:
-#line 439 "bison.y" /* yacc.c:1646  */
+#line 440 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4039 "y.tab.c" /* yacc.c:1646  */
+#line 4040 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 218:
-#line 446 "bison.y" /* yacc.c:1646  */
+#line 447 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4045 "y.tab.c" /* yacc.c:1646  */
+#line 4046 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 219:
-#line 448 "bison.y" /* yacc.c:1646  */
+#line 449 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4051 "y.tab.c" /* yacc.c:1646  */
+#line 4052 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 231:
-#line 478 "bison.y" /* yacc.c:1646  */
+#line 479 "bison.y" /* yacc.c:1646  */
     { save_id(); }
-#line 4057 "y.tab.c" /* yacc.c:1646  */
+#line 4058 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 245:
-#line 496 "bison.y" /* yacc.c:1646  */
+#line 497 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4063 "y.tab.c" /* yacc.c:1646  */
+#line 4064 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 246:
-#line 497 "bison.y" /* yacc.c:1646  */
+#line 498 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4069 "y.tab.c" /* yacc.c:1646  */
+#line 4070 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 247:
-#line 498 "bison.y" /* yacc.c:1646  */
+#line 499 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4075 "y.tab.c" /* yacc.c:1646  */
+#line 4076 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 248:
-#line 502 "bison.y" /* yacc.c:1646  */
+#line 503 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4081 "y.tab.c" /* yacc.c:1646  */
+#line 4082 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 249:
-#line 503 "bison.y" /* yacc.c:1646  */
+#line 504 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4087 "y.tab.c" /* yacc.c:1646  */
+#line 4088 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 250:
-#line 504 "bison.y" /* yacc.c:1646  */
+#line 505 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4093 "y.tab.c" /* yacc.c:1646  */
+#line 4094 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 251:
-#line 505 "bison.y" /* yacc.c:1646  */
+#line 506 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4099 "y.tab.c" /* yacc.c:1646  */
+#line 4100 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 256:
-#line 515 "bison.y" /* yacc.c:1646  */
+#line 516 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4105 "y.tab.c" /* yacc.c:1646  */
+#line 4106 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 257:
-#line 516 "bison.y" /* yacc.c:1646  */
+#line 517 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4111 "y.tab.c" /* yacc.c:1646  */
+#line 4112 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 258:
-#line 517 "bison.y" /* yacc.c:1646  */
+#line 518 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4117 "y.tab.c" /* yacc.c:1646  */
+#line 4118 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 263:
-#line 530 "bison.y" /* yacc.c:1646  */
+#line 531 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4123 "y.tab.c" /* yacc.c:1646  */
+#line 4124 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 266:
-#line 536 "bison.y" /* yacc.c:1646  */
+#line 537 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4129 "y.tab.c" /* yacc.c:1646  */
+#line 4130 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 272:
-#line 550 "bison.y" /* yacc.c:1646  */
+#line 551 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4135 "y.tab.c" /* yacc.c:1646  */
+#line 4136 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 275:
-#line 557 "bison.y" /* yacc.c:1646  */
+#line 558 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4141 "y.tab.c" /* yacc.c:1646  */
+#line 4142 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 276:
-#line 558 "bison.y" /* yacc.c:1646  */
+#line 559 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4147 "y.tab.c" /* yacc.c:1646  */
+#line 4148 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 304:
-#line 598 "bison.y" /* yacc.c:1646  */
+#line 599 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4153 "y.tab.c" /* yacc.c:1646  */
+#line 4154 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 305:
-#line 599 "bison.y" /* yacc.c:1646  */
+#line 600 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4159 "y.tab.c" /* yacc.c:1646  */
+#line 4160 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 306:
-#line 600 "bison.y" /* yacc.c:1646  */
+#line 601 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4165 "y.tab.c" /* yacc.c:1646  */
+#line 4166 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 311:
-#line 608 "bison.y" /* yacc.c:1646  */
+#line 609 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4171 "y.tab.c" /* yacc.c:1646  */
+#line 4172 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 312:
-#line 609 "bison.y" /* yacc.c:1646  */
+#line 610 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4177 "y.tab.c" /* yacc.c:1646  */
+#line 4178 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 314:
-#line 615 "bison.y" /* yacc.c:1646  */
+#line 616 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4183 "y.tab.c" /* yacc.c:1646  */
+#line 4184 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 319:
-#line 626 "bison.y" /* yacc.c:1646  */
+#line 627 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4189 "y.tab.c" /* yacc.c:1646  */
+#line 4190 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 320:
-#line 627 "bison.y" /* yacc.c:1646  */
+#line 628 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4195 "y.tab.c" /* yacc.c:1646  */
+#line 4196 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 322:
-#line 632 "bison.y" /* yacc.c:1646  */
+#line 633 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4201 "y.tab.c" /* yacc.c:1646  */
+#line 4202 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 332:
-#line 649 "bison.y" /* yacc.c:1646  */
+#line 650 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4207 "y.tab.c" /* yacc.c:1646  */
+#line 4208 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 333:
-#line 650 "bison.y" /* yacc.c:1646  */
+#line 651 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4213 "y.tab.c" /* yacc.c:1646  */
+#line 4214 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 334:
-#line 651 "bison.y" /* yacc.c:1646  */
+#line 652 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4219 "y.tab.c" /* yacc.c:1646  */
+#line 4220 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 335:
-#line 652 "bison.y" /* yacc.c:1646  */
+#line 653 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4225 "y.tab.c" /* yacc.c:1646  */
+#line 4226 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 338:
-#line 658 "bison.y" /* yacc.c:1646  */
+#line 659 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4231 "y.tab.c" /* yacc.c:1646  */
+#line 4232 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 345:
-#line 675 "bison.y" /* yacc.c:1646  */
+#line 676 "bison.y" /* yacc.c:1646  */
     {  yyerrok; }
-#line 4237 "y.tab.c" /* yacc.c:1646  */
+#line 4238 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 349:
-#line 683 "bison.y" /* yacc.c:1646  */
+#line 684 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4243 "y.tab.c" /* yacc.c:1646  */
+#line 4244 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 350:
-#line 684 "bison.y" /* yacc.c:1646  */
+#line 685 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4249 "y.tab.c" /* yacc.c:1646  */
+#line 4250 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 351:
-#line 685 "bison.y" /* yacc.c:1646  */
+#line 686 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4255 "y.tab.c" /* yacc.c:1646  */
+#line 4256 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 352:
-#line 686 "bison.y" /* yacc.c:1646  */
+#line 687 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4261 "y.tab.c" /* yacc.c:1646  */
+#line 4262 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 353:
-#line 687 "bison.y" /* yacc.c:1646  */
+#line 688 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4267 "y.tab.c" /* yacc.c:1646  */
+#line 4268 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 354:
-#line 688 "bison.y" /* yacc.c:1646  */
+#line 689 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4273 "y.tab.c" /* yacc.c:1646  */
+#line 4274 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 355:
-#line 689 "bison.y" /* yacc.c:1646  */
+#line 690 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4279 "y.tab.c" /* yacc.c:1646  */
+#line 4280 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 356:
-#line 690 "bison.y" /* yacc.c:1646  */
+#line 691 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4285 "y.tab.c" /* yacc.c:1646  */
+#line 4286 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 357:
-#line 691 "bison.y" /* yacc.c:1646  */
+#line 692 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4291 "y.tab.c" /* yacc.c:1646  */
+#line 4292 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 364:
-#line 704 "bison.y" /* yacc.c:1646  */
+#line 705 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4297 "y.tab.c" /* yacc.c:1646  */
+#line 4298 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 365:
-#line 705 "bison.y" /* yacc.c:1646  */
+#line 706 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4303 "y.tab.c" /* yacc.c:1646  */
+#line 4304 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 366:
-#line 706 "bison.y" /* yacc.c:1646  */
+#line 707 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4309 "y.tab.c" /* yacc.c:1646  */
+#line 4310 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 367:
-#line 707 "bison.y" /* yacc.c:1646  */
+#line 708 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4315 "y.tab.c" /* yacc.c:1646  */
+#line 4316 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 368:
-#line 709 "bison.y" /* yacc.c:1646  */
+#line 710 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4321 "y.tab.c" /* yacc.c:1646  */
+#line 4322 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 369:
-#line 710 "bison.y" /* yacc.c:1646  */
+#line 711 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4327 "y.tab.c" /* yacc.c:1646  */
+#line 4328 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 370:
-#line 711 "bison.y" /* yacc.c:1646  */
+#line 712 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4333 "y.tab.c" /* yacc.c:1646  */
+#line 4334 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 371:
-#line 712 "bison.y" /* yacc.c:1646  */
+#line 713 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4339 "y.tab.c" /* yacc.c:1646  */
+#line 4340 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 372:
-#line 713 "bison.y" /* yacc.c:1646  */
+#line 714 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4345 "y.tab.c" /* yacc.c:1646  */
+#line 4346 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 373:
-#line 715 "bison.y" /* yacc.c:1646  */
+#line 716 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4351 "y.tab.c" /* yacc.c:1646  */
+#line 4352 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 374:
-#line 717 "bison.y" /* yacc.c:1646  */
+#line 718 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4357 "y.tab.c" /* yacc.c:1646  */
+#line 4358 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 375:
-#line 718 "bison.y" /* yacc.c:1646  */
+#line 719 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4363 "y.tab.c" /* yacc.c:1646  */
+#line 4364 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 376:
-#line 719 "bison.y" /* yacc.c:1646  */
+#line 720 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4369 "y.tab.c" /* yacc.c:1646  */
+#line 4370 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 377:
-#line 721 "bison.y" /* yacc.c:1646  */
+#line 722 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4375 "y.tab.c" /* yacc.c:1646  */
+#line 4376 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 378:
-#line 722 "bison.y" /* yacc.c:1646  */
+#line 723 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4381 "y.tab.c" /* yacc.c:1646  */
+#line 4382 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 379:
-#line 723 "bison.y" /* yacc.c:1646  */
+#line 724 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4387 "y.tab.c" /* yacc.c:1646  */
+#line 4388 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 380:
-#line 724 "bison.y" /* yacc.c:1646  */
+#line 725 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4393 "y.tab.c" /* yacc.c:1646  */
+#line 4394 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 381:
-#line 725 "bison.y" /* yacc.c:1646  */
+#line 726 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4399 "y.tab.c" /* yacc.c:1646  */
+#line 4400 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 382:
-#line 726 "bison.y" /* yacc.c:1646  */
+#line 727 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4405 "y.tab.c" /* yacc.c:1646  */
+#line 4406 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 383:
-#line 727 "bison.y" /* yacc.c:1646  */
+#line 728 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4411 "y.tab.c" /* yacc.c:1646  */
+#line 4412 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 389:
-#line 736 "bison.y" /* yacc.c:1646  */
+#line 737 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4417 "y.tab.c" /* yacc.c:1646  */
+#line 4418 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 390:
-#line 737 "bison.y" /* yacc.c:1646  */
+#line 738 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4423 "y.tab.c" /* yacc.c:1646  */
+#line 4424 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 391:
-#line 738 "bison.y" /* yacc.c:1646  */
+#line 739 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4429 "y.tab.c" /* yacc.c:1646  */
+#line 4430 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 392:
-#line 739 "bison.y" /* yacc.c:1646  */
+#line 740 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4435 "y.tab.c" /* yacc.c:1646  */
+#line 4436 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 393:
-#line 740 "bison.y" /* yacc.c:1646  */
+#line 741 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4441 "y.tab.c" /* yacc.c:1646  */
+#line 4442 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 394:
-#line 741 "bison.y" /* yacc.c:1646  */
+#line 742 "bison.y" /* yacc.c:1646  */
     { yyerrok; }
-#line 4447 "y.tab.c" /* yacc.c:1646  */
+#line 4448 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 399:
-#line 755 "bison.y" /* yacc.c:1646  */
+#line 756 "bison.y" /* yacc.c:1646  */
     { inContext = TRUE; popRecord(); popRecord(); pushTable(); }
-#line 4453 "y.tab.c" /* yacc.c:1646  */
+#line 4454 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 400:
-#line 755 "bison.y" /* yacc.c:1646  */
+#line 756 "bison.y" /* yacc.c:1646  */
     { inContext = FALSE; popTable();}
-#line 4459 "y.tab.c" /* yacc.c:1646  */
+#line 4460 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 401:
-#line 756 "bison.y" /* yacc.c:1646  */
+#line 757 "bison.y" /* yacc.c:1646  */
     { inContext = TRUE; popRecord(); popRecord(); pushTable(); }
-#line 4465 "y.tab.c" /* yacc.c:1646  */
+#line 4466 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 402:
-#line 756 "bison.y" /* yacc.c:1646  */
+#line 757 "bison.y" /* yacc.c:1646  */
     { unDecleared = FALSE; inContext = FALSE; popTable();}
-#line 4471 "y.tab.c" /* yacc.c:1646  */
+#line 4472 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 4475 "y.tab.c" /* yacc.c:1646  */
+#line 4476 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -4699,7 +4700,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 773 "bison.y" /* yacc.c:1906  */
+#line 774 "bison.y" /* yacc.c:1906  */
 
 
 //functions
@@ -4734,7 +4735,7 @@ void save_id(void)
 			RS -> currentToken = token;
 			RS -> line = yylineno;
 			RS -> column = previousColumn;
-	
+			RS -> cursorPosi = cursorPos;
 	
 			pushRecord(RS);
 			//printList();
@@ -4742,15 +4743,30 @@ void save_id(void)
 	} 
 	else if (pos == -1)
 	{
-		SemanticRecord *RS;
+		pos = look_up_top_pos(token);
+		if (pos == -1)
+		{
+			SemanticRecord *RS;
 	
-		RS = createSemanticRecord(IDENTIFIER);
-		RS -> currentToken = token;
-		RS -> line = yylineno;
-		RS -> column = previousColumn;
+			RS = createSemanticRecord(IDENTIFIER);
+			RS -> currentToken = token;
+			RS -> line = yylineno;
+			RS -> column = previousColumn;	
+			RS -> cursorPosi = cursorPos;
 	
-		pushRecord(RS);
-		//printList();
+			pushRecord(RS);
+			//printList();
+		}
+		else
+		{
+			SymbolTable *symbol = getSymbolInPos(pos);
+			char error[100] = "";
+			char note[100] = "";
+			sprintf(error, "semantic error, redeclaration of %s'%s'%s with no linkage", CWHTN, token, CWHT);
+			yyerror(error);
+			sprintf(note, "note, previous declaration of %s‘%s’%s was here", CWHTN, symbol -> varName, CWHT);
+			yynote(note, symbol -> line, symbol -> column, TRUE, symbol -> cursorPosi);
+		}
 	}
 	else 
 	{
@@ -4760,7 +4776,7 @@ void save_id(void)
 		sprintf(error, "semantic error, redeclaration of %s'%s'%s with no linkage", CWHTN, token, CWHT);
 		yyerror(error);
 		sprintf(note, "note, previous declaration of %s‘%s’%s was here", CWHTN, RS -> currentToken, CWHT);
-		yynote(note, RS -> line, RS -> column, TRUE);
+		yynote(note, RS -> line, RS -> column, TRUE, RS -> cursorPosi);
 	}
 }
 
@@ -4781,11 +4797,11 @@ void declaration_end(void)
 	{
 		if (RS -> kind == ERROR)
 		{
-			appendSymbol(RS -> currentToken, RS -> line, RS -> column, ERROR, stackPos);
+			appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, ERROR, stackPos);
 		}
 		else
 		{
-			appendSymbol(RS -> currentToken, RS -> line, RS -> column, dataType -> type, stackPos);
+			appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, dataType -> type, stackPos);
 		}
 		popRecord();
 		RS = getTopRecord();
@@ -4801,9 +4817,9 @@ void process_literal(void)
 	char* tokenValue = strdup(yytext);
 	SemanticRecord *RS;
 	
-	DO_Datos* c;
+	DO_Data* c;
 	RS = createSemanticRecord(DATAOBJECT);
-	c = (DO_Datos*)RS -> dataBlock;
+	c = (DO_Data*)RS -> dataBlock;
 	c -> type = LITERAL;
 	c -> value = tokenValue;
 
@@ -4827,7 +4843,7 @@ void process_op(void)
 
 void process_id(void)
 {
-	DO_Datos* object;
+	DO_Data* object;
 	SemanticRecord *RS;
 	char *id;
 
@@ -4837,8 +4853,9 @@ void process_id(void)
 	RS -> currentToken = id;	
 	RS -> line = yylineno;
 	RS -> column = previousColumn;
+	RS -> cursorPosi = cursorPos;
 
-	object = (DO_Datos*) RS -> dataBlock;
+	object = (DO_Data*) RS -> dataBlock;
 	object -> type = NAME;
 
 	if (search(id) == -1)
@@ -4865,12 +4882,12 @@ void process_id(void)
 
 void checkForDeclaredError(char *token, SemanticRecord* R)
 {
-	DO_Datos *datos;
+	DO_Data *datos;
 	SemanticRecord *RS;
 	int tokenPos = searhErrorToken(token);
 	if (tokenPos == -1)
 	{
-		if (!look_up_TS(token))
+		if (!look_up_error_TS(token))
 		{
 			char error[100];
 			sprintf(error, "semantic error, %s'%s'%s undeclared (first use in this function)", CWHTN, token, CWHT);
@@ -4880,7 +4897,7 @@ void checkForDeclaredError(char *token, SemanticRecord* R)
 			{
 				char note[100];
 				sprintf(note, "note, each undeclared identifier is reported only once for each function it appears in");
-				yynote(note, R -> line, R -> column, FALSE);
+				yynote(note, R -> line, R -> column, FALSE, RS -> cursorPosi);
 				unDecleared = TRUE;
 			}
 		}

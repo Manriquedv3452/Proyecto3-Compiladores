@@ -25,7 +25,7 @@ typedef struct
 	};
 	int stackPos;
 	
-} DO_Datos;
+} DO_Data;
 
 
 typedef struct semanticRecord
@@ -35,7 +35,7 @@ typedef struct semanticRecord
 	enum dataKind kind;
 	int type;
 	char *currentToken;
-	int line, column;
+	int line, column, cursorPosi;
 	void *dataBlock;
 
 } SemanticRecord;
@@ -81,7 +81,7 @@ SemanticRecord* createSemanticRecord(enum dataKind type)
 	if (type == DATAOBJECT)
 	{
 
-		RS -> dataBlock = malloc(sizeof(DO_Datos));
+		RS -> dataBlock = malloc(sizeof(DO_Data));
 	}
 
 	return RS;

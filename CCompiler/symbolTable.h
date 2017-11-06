@@ -7,7 +7,7 @@ typedef struct symbolTable
 {
 	struct symbolTable *next;
 	char* varName;
-	int line, column;
+	int line, column, cursorPosi;
 	int stackPos;
 	int varType;
 
@@ -19,6 +19,7 @@ typedef struct symbolStack
 	struct symbolStack *previous;
 	int symbolSize;
 	SymbolTable *symbolHead;
+	SymbolTable *symbolTail;
 	
 } TableStack;
 
@@ -34,11 +35,14 @@ SymbolTable *tailSymbol;
 void initializeTable(void);
 void pushTable(void);
 void popTable(void);
-void appendSymbol(char* varName, int line, int column, int varType, int stackPos);
+void appendSymbol(char* varName, int line, int column, int cursorPosi, int varType, int stackPos);
 void popSymbol(void);
 void clearSymbols(void);
 int look_up_TS(char* id);
+int look_up_top_pos(char* id);
+int look_up_TS(char* id);
 void printSymbols(void);
+SymbolTable* getSymbolInPos(int pos);
 
 void initializeTable(void)
 {
@@ -58,7 +62,7 @@ void pushTable(void)
 	temp = headTableStack -> next;
 
 	headTableStack -> next = (TableStack*) malloc(sizeof(TableStack));
-	headTableStack -> next -> symbolHead = headSymbol = tailSymbol = (SymbolTable*) malloc(sizeof(SymbolTable));
+	headSymbol = tailSymbol = headTableStack -> next -> symbolHead = headTableStack -> next -> symbolTail = (SymbolTable*) malloc(sizeof(SymbolTable));
 	headTableStack -> next -> symbolSize = 0;
 	
 	headTableStack -> next -> next = temp;
@@ -85,11 +89,15 @@ void popTable(void)
 		headTableStack -> next = headTableStack -> next -> next;
 
 		free(temp);
+
+		headSymbol = headTableStack -> next -> symbolHead;
+		tailSymbol =  headTableStack -> next -> symbolTail;
 		//printSymbols();
 	}
+	
 }
 
-void appendSymbol(char* varName, int line, int column, int varType, int stackPos)
+void appendSymbol(char* varName, int line, int column, int cursorPosi, int varType, int stackPos)
 {
 		
 	SymbolTable* temp;
@@ -103,9 +111,11 @@ void appendSymbol(char* varName, int line, int column, int varType, int stackPos
 	tailSymbol -> column = column;
 	tailSymbol -> varType = varType;
 	tailSymbol -> stackPos = stackPos;
+	tailSymbol -> cursorPosi = cursorPosi;
 	
 	headTableStack -> next -> symbolSize++;
-	//headTableStack -> next -> symbolHead = headSymbolTable;
+	headTableStack -> next -> symbolHead = headSymbol;
+	headTableStack -> next -> symbolTail = tailSymbol;
 	
 }
 
@@ -141,7 +151,7 @@ int look_up_TS(char* id)
 	{
 		for (currentSymbol = currentTableStack -> symbolHead -> next; currentSymbol != NULL; currentSymbol = currentSymbol -> next)
 		{
-			if (strcmp(currentSymbol -> varName, id) == 0)
+			if (strcmp(currentSymbol -> varName, id) == 0 && currentSymbol -> varType != ERROR)
 			{
 				return 1;
 			}
@@ -150,6 +160,58 @@ int look_up_TS(char* id)
 	return 0;
 }
 
+int look_up_error_TS(char* id)
+{
+	SymbolTable* currentSymbol;
+	for (currentTableStack = headTableStack -> next; currentTableStack != tailTableStack; currentTableStack = currentTableStack -> next)
+	{
+		for (currentSymbol = currentTableStack -> symbolHead -> next; currentSymbol != NULL; currentSymbol = currentSymbol -> next)
+		{
+			if (strcmp(currentSymbol -> varName, id) == 0 && currentSymbol -> varType == ERROR)
+			{
+				return 1;
+			}
+		}	
+	}
+	return 0;
+}
+
+
+int look_up_top_pos(char* id)
+{
+	int pos = 0;
+	if (headTableStack -> next != tailTableStack)
+	{
+		SymbolTable* currentSymbol =  headTableStack -> next -> symbolHead;
+		while (currentSymbol -> next != NULL)
+		{
+			if (strcmp(currentSymbol -> next -> varName, id) == 0 && currentSymbol -> next -> varType != ERROR)
+			{
+				return pos;
+			}
+			currentSymbol = currentSymbol -> next;
+			pos++;
+		}
+		return -1;
+	}
+}
+
+
+SymbolTable* getSymbolInPos(int pos)
+{
+	if (headTableStack -> next != tailTableStack)
+	{
+		
+		SymbolTable* currentSymbol =  headTableStack -> next -> symbolHead;
+		int currentPos = 0;
+		while (currentSymbol -> next != NULL && currentPos < pos)
+		{
+			currentSymbol = currentSymbol -> next;
+			currentPos++;
+		}
+		return currentSymbol -> next;
+	}
+}
 void printSymbols(void)
 {
 	

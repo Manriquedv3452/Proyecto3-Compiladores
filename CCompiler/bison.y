@@ -23,7 +23,7 @@ void addTableContext(void);
 void checkForDeclaredError(char *token, SemanticRecord* R);
 
 void yyerror(const char *);
-void yynote(char *noteInfo, int line, int column, int writeCode);
+void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi);
 extern int getToken(void);
 extern char* yytext;
 extern int yylineno;
@@ -32,6 +32,7 @@ extern int previousColumn;
 extern void print(void);
 
 extern char* previousToken;
+extern int cursorPos;
 
 #define yylex getToken
 #define YYERROR_VERBOSE 1
@@ -804,7 +805,7 @@ void save_id(void)
 			RS -> currentToken = token;
 			RS -> line = yylineno;
 			RS -> column = previousColumn;
-	
+			RS -> cursorPosi = cursorPos;
 	
 			pushRecord(RS);
 			//printList();
@@ -812,15 +813,30 @@ void save_id(void)
 	} 
 	else if (pos == -1)
 	{
-		SemanticRecord *RS;
+		pos = look_up_top_pos(token);
+		if (pos == -1)
+		{
+			SemanticRecord *RS;
 	
-		RS = createSemanticRecord(IDENTIFIER);
-		RS -> currentToken = token;
-		RS -> line = yylineno;
-		RS -> column = previousColumn;
+			RS = createSemanticRecord(IDENTIFIER);
+			RS -> currentToken = token;
+			RS -> line = yylineno;
+			RS -> column = previousColumn;	
+			RS -> cursorPosi = cursorPos;
 	
-		pushRecord(RS);
-		//printList();
+			pushRecord(RS);
+			//printList();
+		}
+		else
+		{
+			SymbolTable *symbol = getSymbolInPos(pos);
+			char error[100] = "";
+			char note[100] = "";
+			sprintf(error, "semantic error, redeclaration of %s'%s'%s with no linkage", CWHTN, token, CWHT);
+			yyerror(error);
+			sprintf(note, "note, previous declaration of %s‘%s’%s was here", CWHTN, symbol -> varName, CWHT);
+			yynote(note, symbol -> line, symbol -> column, TRUE, symbol -> cursorPosi);
+		}
 	}
 	else 
 	{
@@ -830,7 +846,7 @@ void save_id(void)
 		sprintf(error, "semantic error, redeclaration of %s'%s'%s with no linkage", CWHTN, token, CWHT);
 		yyerror(error);
 		sprintf(note, "note, previous declaration of %s‘%s’%s was here", CWHTN, RS -> currentToken, CWHT);
-		yynote(note, RS -> line, RS -> column, TRUE);
+		yynote(note, RS -> line, RS -> column, TRUE, RS -> cursorPosi);
 	}
 }
 
@@ -851,11 +867,11 @@ void declaration_end(void)
 	{
 		if (RS -> kind == ERROR)
 		{
-			appendSymbol(RS -> currentToken, RS -> line, RS -> column, ERROR, stackPos);
+			appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, ERROR, stackPos);
 		}
 		else
 		{
-			appendSymbol(RS -> currentToken, RS -> line, RS -> column, dataType -> type, stackPos);
+			appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, dataType -> type, stackPos);
 		}
 		popRecord();
 		RS = getTopRecord();
@@ -871,9 +887,9 @@ void process_literal(void)
 	char* tokenValue = strdup(yytext);
 	SemanticRecord *RS;
 	
-	DO_Datos* c;
+	DO_Data* c;
 	RS = createSemanticRecord(DATAOBJECT);
-	c = (DO_Datos*)RS -> dataBlock;
+	c = (DO_Data*)RS -> dataBlock;
 	c -> type = LITERAL;
 	c -> value = tokenValue;
 
@@ -897,7 +913,7 @@ void process_op(void)
 
 void process_id(void)
 {
-	DO_Datos* object;
+	DO_Data* object;
 	SemanticRecord *RS;
 	char *id;
 
@@ -907,8 +923,9 @@ void process_id(void)
 	RS -> currentToken = id;	
 	RS -> line = yylineno;
 	RS -> column = previousColumn;
+	RS -> cursorPosi = cursorPos;
 
-	object = (DO_Datos*) RS -> dataBlock;
+	object = (DO_Data*) RS -> dataBlock;
 	object -> type = NAME;
 
 	if (search(id) == -1)
@@ -935,12 +952,12 @@ void process_id(void)
 
 void checkForDeclaredError(char *token, SemanticRecord* R)
 {
-	DO_Datos *datos;
+	DO_Data *datos;
 	SemanticRecord *RS;
 	int tokenPos = searhErrorToken(token);
 	if (tokenPos == -1)
 	{
-		if (!look_up_TS(token))
+		if (!look_up_error_TS(token))
 		{
 			char error[100];
 			sprintf(error, "semantic error, %s'%s'%s undeclared (first use in this function)", CWHTN, token, CWHT);
@@ -950,7 +967,7 @@ void checkForDeclaredError(char *token, SemanticRecord* R)
 			{
 				char note[100];
 				sprintf(note, "note, each undeclared identifier is reported only once for each function it appears in");
-				yynote(note, R -> line, R -> column, FALSE);
+				yynote(note, R -> line, R -> column, FALSE, RS -> cursorPosi);
 				unDecleared = TRUE;
 			}
 		}

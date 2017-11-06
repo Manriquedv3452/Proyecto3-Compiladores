@@ -13,7 +13,7 @@ extern FILE* yyin;
 
 void printError(char *errorType, char *token, int line, int previousColumn, int column, const char *errorInfo, int cursorPos);
 void printLineCodeInfo(int column);
-void printNote(char *note,  char *token, int line, int column, const char *errorInfo, int writeCode);
+void printNote(char *note,  char *token, int line, int column, const char *errorInfo, int cursorPos, int writeCode);
 int parser(char* fileNameParse);
 
 char fileNameParse[50];
@@ -135,8 +135,24 @@ void printLineCodeInfo(int column)
 	printf("%s^%s\n\n", CGRN, CWHT);
 }
 
-void printNote(char* note, char *token, int line, int column, const char *noteInfo, int writeCode)
+void printNote(char* note, char *token, int line, int column, const char *noteInfo, int cursorPos, int writeCode)
 {
+	memset(lineCode, '\0', 5000);
+	int cursor = ftell(yyin);
+	int c;
+	int i = 0;
+
+	fseek(FileTemp, cursorPos - column, SEEK_SET);
+	while ((c = fgetc(FileTemp)) != EOF && c != '\n' && i != 150)
+	{
+		if (c == '\t')
+			lineCode[i++] = ' ';
+		else
+			lineCode[i++] = c;
+
+	}
+	fseek(FileTemp, cursor, SEEK_SET);
+
 	printf("%s%s:%d:%d: %s%s: %s", CWHTN, fileNameParse, line, column, CCYN, note, CWHT);
 	
 	
@@ -150,5 +166,5 @@ void printNote(char* note, char *token, int line, int column, const char *noteIn
 	printf("\n");
 
 	if (writeCode != 0)
-		printLineCodeInfo(column);
+		printLineCodeInfo(column - 1);
 }

@@ -810,11 +810,11 @@ char *yytext;
 #define MAXLEN 100
 
 extern void printError(char *errorType, char *token, int line, int previousColumn, int column, const char* errorInfo, int cursorPos); //main.c
-extern void printNote(char* note, char *token, int line, int column, const char *errorInfo, int writeCode);
+extern void printNote(char* note, char *token, int line, int column, const char *errorInfo, int cursorPos, int writeCode);
 extern char lineCode[5000]; 							    //main.c
 
 extern void yyerror(const char *);  /* prints grammar violation message */
-extern void yynote(char *noteInfo, int line, int column, int writeCode); 	//prints note
+extern void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi); 	//prints note
 
 extern int sym_type(const char *);  /* returns type from symbol table */
 
@@ -2697,7 +2697,7 @@ void yyerror(const char *s)
 	printError(errorType, yytext, yylineno, previousColumn, column, s, cursorPos); 
 }
 
-void yynote(char *noteInfo, int line, int column, int writeCode)
+void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi)
 {
 	int i = 0;
 	char note[MAXLEN];
@@ -2707,7 +2707,7 @@ void yynote(char *noteInfo, int line, int column, int writeCode)
 		i++;
 	}
 	note[i] = '\0';
-	printNote(note, yytext, line, column, noteInfo, writeCode); 
+	printNote(note, yytext, line, column, noteInfo, cursorPosi, writeCode); 
 }
 
 static void comment(void)

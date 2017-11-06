@@ -11,6 +11,9 @@ int main()
 		int ff = l + m;
 		int l;
 		int m;
+		
+			int i;
+		
 		//printf("%d\n", v);
 	
 }
