@@ -307,7 +307,8 @@ declaration
 	| static_assert_declaration
 	//| declaration_specifiers init_declarator_list error		{ yyerrok; }
 	| declaration_specifiers error ';'			    { yyerrok; }//err*/
-	| declaration_specifiers error					{ yyerrok; }
+
+	| declaration_specifiers  init_declarator_list error		{ yyerrok; }
 	//| error init_declarator_list ';'			    	{ yyerrok; }//err
 	//| error ';'						    { yyerrok; }
 	;

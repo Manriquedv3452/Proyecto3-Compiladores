@@ -7,9 +7,9 @@ int main()
 		int var1;
 		//printf("%d\n", v);
 		int var2;
-		int var3 = var1 + var2 + l + m;
+		int var3 = var1 + var2 + l + m
 		int ff = l + m;
-		int l;
+		int l
 		int m;
 		
 			int i;
