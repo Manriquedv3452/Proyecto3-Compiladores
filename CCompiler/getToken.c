@@ -9,14 +9,20 @@ extern char* strdup(char*);
 int getToken(void);
 
 char* previousToken;
+int previousTokenCode;
+int nextToken;
 
 //FUNCTION RETURNS THE NEXT TOKEN.
 int getToken(void)
 {	
 
 	if (yytext != NULL)
+	{
 		previousToken = strdup(yytext);
+		previousTokenCode = nextToken;
+	}
 
-	return yylex();
+	nextToken = yylex();
+	return nextToken;
 }
 

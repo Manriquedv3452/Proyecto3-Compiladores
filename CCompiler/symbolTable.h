@@ -6,7 +6,7 @@
 typedef struct symbolTable
 {
 	struct symbolTable *next;
-	char* varName;
+	char varName[MAX_VALUE_SIZE];		//MAX_VALUE_SIZE DEFINE IN SEMANTICSTACK.H
 	int line, column, cursorPosi;
 	int stackPos;
 	int varType;
@@ -35,7 +35,7 @@ SymbolTable *tailSymbol;
 void initializeTable(void);
 void pushTable(void);
 void popTable(void);
-void appendSymbol(char* varName, int line, int column, int cursorPosi, int varType, int stackPos);
+void appendSymbol(char varName[], int line, int column, int cursorPosi, int varType, int stackPos);
 void popSymbol(void);
 void clearSymbols(void);
 int look_up_TS(char* id);
@@ -97,7 +97,7 @@ void popTable(void)
 	
 }
 
-void appendSymbol(char* varName, int line, int column, int cursorPosi, int varType, int stackPos)
+void appendSymbol(char varName[], int line, int column, int cursorPosi, int varType, int stackPos)
 {
 		
 	SymbolTable* temp;
@@ -106,7 +106,7 @@ void appendSymbol(char* varName, int line, int column, int cursorPosi, int varTy
 	
 	tailSymbol = tailSymbol -> next = (SymbolTable*) malloc(sizeof(SymbolTable));	
 	
-	tailSymbol -> varName = varName;
+	strcpy(tailSymbol -> varName, varName);
 	tailSymbol -> line = line;
 	tailSymbol -> column = column;
 	tailSymbol -> varType = varType;

@@ -1,7 +1,7 @@
 #include <string.h>
 //Semantic Analyzes
 
-
+#define MAX_VALUE_SIZE 500
 //DATA TYPE ENUM IS THE SAME OF BISON INCLUDING IDENTIFIER
 enum dataKind 
 {
@@ -11,18 +11,21 @@ enum dataKind
 	TYPE = 603, 
 	ERROR = 604,
 	TEMP = 605, 		//DO DATATYPE
-	NAME = 606		//DO DATATYPE
+	NAME = 606,		//DO DATATYPE
+	ID = 607		//DO DATATYPE
 };
 
 
 typedef struct 
 {
 	enum dataKind type;
+	int literalType;
 	union
 	{
-		char* varName;
-		char* value;
+		char varName[MAX_VALUE_SIZE];
+		char value[MAX_VALUE_SIZE];
 	};
+	int line, column, cursorPosi;
 	int stackPos;
 	
 } DO_Data;
@@ -34,7 +37,7 @@ typedef struct semanticRecord
 	struct semanticRecord *previous;
 	enum dataKind kind;
 	int type;
-	char *currentToken;
+	char currentToken[MAX_VALUE_SIZE];
 	int line, column, cursorPosi;
 	void *dataBlock;
 
@@ -51,8 +54,9 @@ SemanticRecord* retrieveRecord(enum dataKind type);
 SemanticRecord* getTopRecord(void);
 int search(char* token);
 int searhErrorToken(char *token);
-
+SemanticRecord* getTopRecord(void);
 void printList(void);
+void popRecordWithoutDataBlock(void);
 
 
 SemanticRecord *headRecord = NULL;
@@ -81,9 +85,9 @@ SemanticRecord* createSemanticRecord(enum dataKind type)
 	if (type == DATAOBJECT)
 	{
 
-		RS -> dataBlock = malloc(sizeof(DO_Data));
+		RS -> dataBlock = (DO_Data*) malloc(sizeof(DO_Data));
 	}
-
+	RS -> dataBlock =  malloc(sizeof(DO_Data));
 	return RS;
 }
 
@@ -107,13 +111,28 @@ void popRecord(void)
 	if (headRecord -> next != tailRecord)
 	{
 		SemanticRecord *temp;
-	
+		
+		temp = headRecord -> next;
+		headRecord -> next -> next -> previous = headRecord;
+		headRecord -> next = headRecord -> next -> next;
+
+		//free(temp -> dataBlock);
+		free(temp);
+
+	}
+}
+
+void popRecordWithoutDataBlock(void)
+{
+	if (headRecord -> next != tailRecord)
+	{
+		SemanticRecord *temp;
+		
 		temp = headRecord -> next;
 		headRecord -> next -> next -> previous = headRecord;
 		headRecord -> next = headRecord -> next -> next;
 
 		free(temp);
-
 	}
 }
 
@@ -138,15 +157,14 @@ SemanticRecord* getTopRecord(void)
 		RS = headRecord -> next;
 		return RS;
 	}
-	return RS;
 }
 
 void printList(void)
 {
-	currentRecord = headRecord -> next;
-	while (currentRecord != tailRecord)
+	currentRecord = headRecord;
+	while (currentRecord -> next != tailRecord)
 	{
-		printf("%s\n", currentRecord -> currentToken);
+		printf("%s\n", currentRecord -> next -> currentToken);
 		currentRecord = currentRecord -> next;
 	}
 	printf("\n\n");

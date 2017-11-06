@@ -13,7 +13,7 @@
 #define CWHTN  "\x1B[1m"
 
 void save_type(void);
-void process_literal(void);
+void process_literal(int literalType);
 void process_id(void);
 void save_id(void);
 void process_op(void);
@@ -21,6 +21,10 @@ void process_id(void);
 void declaration_end(void);
 void addTableContext(void);
 void checkForDeclaredError(char *token, SemanticRecord* R);
+void eval_binary(void);
+int verifyIfCodeNeeded(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord* dataType);
+void getLiteralResult(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord* dataType, int operand1, int operand2);
+void pushNewSemanticRecordDO(int literalType, DO_Data *op, char* value);
 
 void yyerror(const char *);
 void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi);
@@ -33,6 +37,7 @@ extern void print(void);
 
 extern char* previousToken;
 extern int cursorPos;
+extern int previousTokenCode;
 
 #define yylex getToken
 #define YYERROR_VERBOSE 1
@@ -74,7 +79,7 @@ primary_expression
 	;
 
 constant
-	: I_CONSTANT		{ process_literal(); }/* includes character_constant */
+	: I_CONSTANT		{ process_literal(I_CONSTANT); }/* includes character_constant */
 	| F_CONSTANT
 	| ENUMERATION_CONSTANT	/* after it has been defined as such */
 	;
@@ -180,9 +185,9 @@ cast_expression
 
 multiplicative_expression
 	: cast_expression
-	| multiplicative_expression '*' cast_expression
-	| multiplicative_expression '/' cast_expression
-	| multiplicative_expression '%' cast_expression
+	| multiplicative_expression '*' { process_op(); } cast_expression {  eval_binary(); }
+	| multiplicative_expression '/' { process_op(); } cast_expression {  eval_binary(); }
+	| multiplicative_expression '%' { process_op(); } cast_expression {  eval_binary(); }
 	| multiplicative_expression '*' error			{ yyerrok; }	
 	| multiplicative_expression '/' error			{ yyerrok; }
 	| multiplicative_expression '%' error			{ yyerrok; }
@@ -191,8 +196,8 @@ multiplicative_expression
 
 additive_expression
 	: multiplicative_expression
-	| additive_expression '+' multiplicative_expression
-	| additive_expression '-' multiplicative_expression
+	| additive_expression '+' { process_op(); } multiplicative_expression { eval_binary(); }
+	| additive_expression '-' { process_op(); } multiplicative_expression 
 	//| error '+' multiplicative_expression			{ yyerrok; }    		//err
 	| additive_expression '+' error				{ yyerrok; }
 	| additive_expression '-' error				{ yyerrok; }
@@ -260,7 +265,7 @@ logical_or_expression
 	;
 
 conditional_expression
-	: logical_or_expression
+	: logical_or_expression 
 	| logical_or_expression '?' expression ':' conditional_expression
 	| logical_or_expression '?' error ':' conditional_expression		{ yyerrok; }
 	| logical_or_expression '?' expression error conditional_expression	{ yyerrok; }
@@ -302,7 +307,7 @@ constant_expression
 	;
 
 declaration
-	: declaration_specifiers  ';'
+	: declaration_specifiers  ';'				{ declaration_end(); }
 	| declaration_specifiers  init_declarator_list ';'   { declaration_end(); }	
 	| static_assert_declaration
 	//| declaration_specifiers init_declarator_list error		{ yyerrok; }
@@ -776,14 +781,15 @@ declaration_list
 
 //functions
 
+char resultBinary[MAX_VALUE_SIZE];
 
 void save_type(void)
 {
 	SemanticRecord *RS;
 	
 	RS = createSemanticRecord(TYPE);
-	RS -> currentToken = previousToken;
-	RS -> type = yychar;
+	strcpy(RS -> currentToken, previousToken);
+	RS -> type = previousTokenCode;
 
 	
 	pushRecord(RS);
@@ -802,8 +808,8 @@ void save_id(void)
 	
 			SemanticRecord *RS;
 	
-			RS = createSemanticRecord(IDENTIFIER);
-			RS -> currentToken = token;
+			RS = createSemanticRecord(ID);
+			strcpy(RS -> currentToken, token);
 			RS -> line = yylineno;
 			RS -> column = previousColumn;
 			RS -> cursorPosi = cursorPos;
@@ -819,8 +825,8 @@ void save_id(void)
 		{
 			SemanticRecord *RS;
 	
-			RS = createSemanticRecord(IDENTIFIER);
-			RS -> currentToken = token;
+			RS = createSemanticRecord(ID);
+			strcpy(RS -> currentToken, token);
 			RS -> line = yylineno;
 			RS -> column = previousColumn;	
 			RS -> cursorPosi = cursorPos;
@@ -864,7 +870,7 @@ void declaration_end(void)
 	SemanticRecord *RS;
 	RS = getTopRecord();
 	
-	while (RS -> kind != TYPE)
+	while (RS -> kind != TYPE && RS != tailRecord)
 	{
 		if (RS -> kind == ERROR)
 		{
@@ -878,12 +884,10 @@ void declaration_end(void)
 		RS = getTopRecord();
 	}
 	popRecord();
-
-
 	
 }
 
-void process_literal(void)
+void process_literal(int literalType)
 {
 	char* tokenValue = strdup(yytext);
 	SemanticRecord *RS;
@@ -892,10 +896,17 @@ void process_literal(void)
 	RS = createSemanticRecord(DATAOBJECT);
 	c = (DO_Data*)RS -> dataBlock;
 	c -> type = LITERAL;
-	c -> value = tokenValue;
+	c -> literalType = literalType;
+	strcpy(c -> value, tokenValue);
+	c -> line = yylineno;
+	c -> column = previousColumn;
+	c -> cursorPosi = cursorPos;
 
 	RS -> dataBlock = c;
-	RS -> currentToken = tokenValue;
+	strcpy(RS -> currentToken, tokenValue);
+	RS -> line = yylineno;
+	RS -> column = previousColumn;
+	RS -> cursorPosi = cursorPos;
 	
 	pushRecord(RS);
 }
@@ -905,7 +916,8 @@ void process_op(void)
 	SemanticRecord *RS;
 	
 	RS = createSemanticRecord(OPERATOR);
-	RS -> currentToken = previousToken;
+	strcpy(RS -> currentToken, previousToken);
+	RS -> type = previousTokenCode;
 
 	
 	pushRecord(RS);
@@ -921,32 +933,42 @@ void process_id(void)
 	id = strdup(yytext);
 	
 	RS = createSemanticRecord(DATAOBJECT);
-	RS -> currentToken = id;	
+	strcpy(RS -> currentToken, id);	
 	RS -> line = yylineno;
 	RS -> column = previousColumn;
 	RS -> cursorPosi = cursorPos;
 
 	object = (DO_Data*) RS -> dataBlock;
-	object -> type = NAME;
+
+	object -> line = yylineno;
+	object -> column = previousColumn;
+	object -> cursorPosi = cursorPos;
 
 	if (search(id) == -1)
 	{
 		if (!look_up_TS(id))
 		{
-			RS -> currentToken = id;
+			strcpy(RS -> currentToken, id);
 			RS -> kind = ERROR;
 			checkForDeclaredError(id, RS);
 			object -> type = ERROR;
 		}
+		else
+		{
+			strcpy(object -> varName, id);
+			object -> type = ID;
+			RS -> type = ID;
+		}
+		
 	}
 	else
 	{
-		object -> varName = id;
-	
-		RS -> dataBlock = object;
+		strcpy(object -> varName, id);
+		object -> type = ID;
+		RS -> type = ID;
 	}
 	
-
+	RS -> dataBlock = object;
 	pushRecord(RS);
 	
 }
@@ -974,6 +996,228 @@ void checkForDeclaredError(char *token, SemanticRecord* R)
 		}
 	}
 	
+}
+
+void eval_binary(void)
+{
+	SemanticRecord* RS = getTopRecord();
+	char operator;
+	SemanticRecord* dataType = retrieveRecord(TYPE);
+
+	//printList();
+	
+	DO_Data* op2 = (DO_Data*) RS -> dataBlock; popRecordWithoutDataBlock(); RS = getTopRecord();
+	operator = RS -> type; popRecord(); RS = getTopRecord();
+	DO_Data* op1 = (DO_Data*) RS -> dataBlock; popRecordWithoutDataBlock(); 
+
+	//printf("%s\n", op1 -> currentToken);
+	if (op1 -> type == ERROR || op2 -> type == ERROR)
+	{
+		RS = createSemanticRecord(OPERATOR);
+		op1 = (DO_Data*) RS -> dataBlock;
+
+		RS -> kind = ERROR;
+		op1 -> type = ERROR;
+		strcpy(RS -> currentToken, "");
+		RS -> dataBlock = op1;
+
+		pushRecord(RS);
+
+		return;
+		
+	}
+
+	
+	if (!verifyIfCodeNeeded(op1, operator, op2, dataType)){}
+	free(op1);
+	free(op2);
+}
+
+
+int verifyIfCodeNeeded(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord* dataType)
+{
+	int operand1, operand2;
+	if (op1 -> type == LITERAL && op2 -> type == LITERAL)
+	{
+		
+		operand1 = atoi(op1 -> value);
+		operand2 = atoi(op2 -> value);
+
+
+		if (operand2 == 0)
+		{	
+			if (operator == '/')
+			{
+				//printWarning
+				return 0;
+			}
+		}
+		getLiteralResult(op1, operator, op2, dataType, operand1, operand2);
+	
+		pushNewSemanticRecordDO(I_CONSTANT, op2, resultBinary);
+		
+	}
+	else if (op1 -> type == ID && op2 -> type == LITERAL)
+	{
+		operand2 = atoi(op2 -> value);
+		if (operand2 == 0)
+		{
+			if (operator == '/' || operator == '%')
+			{
+				//printWarning
+				return 0;
+			}
+			else if (operator == '*')
+			{
+				pushNewSemanticRecordDO(op2 -> literalType, op2, "0");
+				return 1;
+			}
+			else
+			{
+				pushNewSemanticRecordDO(op1 -> literalType, op1, "");
+				return 0;
+			}
+		}
+		else if (operand2 == 1)
+		{
+			if (operator == '*' || operator == '/')
+			{
+				pushNewSemanticRecordDO(op1 -> literalType, op1, "");
+				return 1;
+			}
+		}
+	}
+	else if (op1 -> type == LITERAL && op2 -> type == ID)
+	{
+		operand1 = atoi(op1 -> value);
+		if (operand1 == 0)
+		{
+			if (operator == '/' || operator == '*' || operator == '%')
+			{
+				pushNewSemanticRecordDO(op1 -> literalType, op1, "0");
+				return 1;
+			}
+			else
+			{
+				pushNewSemanticRecordDO(op2 -> literalType, op2, "");
+				return 1;
+			}
+		}
+		else if (operand1 == 1)
+		{
+			if (operator == '*')
+			{
+				pushNewSemanticRecordDO(op2 -> literalType, op2, "");
+				return 1;
+			}
+		}
+	}
+	
+	if (strcmp(op1 -> varName, op2 -> varName) == 0)
+	{
+		if (operator == '/')
+		{
+			op1 -> type = LITERAL;
+			op1 -> literalType = I_CONSTANT;
+			pushNewSemanticRecordDO(op1 -> literalType, op1, "1");
+			return 1;
+		}
+		else if (operator == '%')
+		{
+			op1 -> type = LITERAL;
+			op1 -> literalType = I_CONSTANT;
+			pushNewSemanticRecordDO(op2 -> literalType, op2, "0");
+			return 1;
+		}
+	}
+	return 0;
+	
+}
+
+void pushNewSemanticRecordDO(int literalType, DO_Data *op, char* value)
+{
+	SemanticRecord *newSemanticRecord = createSemanticRecord(DATAOBJECT);
+	DO_Data* newDataObject = (DO_Data*) newSemanticRecord -> dataBlock;
+	
+
+	newSemanticRecord -> type = op -> type;
+	newSemanticRecord -> line = op -> line;
+	newSemanticRecord -> column = op -> column;
+	newSemanticRecord -> cursorPosi = op -> cursorPosi;
+
+	newDataObject -> line = op -> line;
+	newDataObject -> column = op -> column;
+	newDataObject -> cursorPosi = op -> cursorPosi;
+	newDataObject -> type = op -> type;
+	
+
+	if (op -> type == LITERAL)
+	{
+		strcpy(newDataObject -> value, value);
+		newDataObject -> literalType = literalType;
+		strcpy(newSemanticRecord -> currentToken, value);
+	}
+	else
+	{
+		strcpy(newDataObject -> varName, op -> varName);		
+		strcpy(newSemanticRecord -> currentToken, op -> varName);
+	
+	}
+	
+		
+	newSemanticRecord -> dataBlock = newDataObject;
+	pushRecord(newSemanticRecord);
+	printList();
+}
+void getLiteralResult(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord* dataType, int operand1, int operand2)
+{
+	
+	
+	memset(resultBinary, '\0', MAX_VALUE_SIZE);
+	//float opF1, opF2;
+	//get operator constant
+
+	//get operator
+	if (operator == '+')
+	{
+		if (dataType -> type == INT)
+			sprintf(resultBinary, "%d", operand1 + operand2);
+	}
+	else if (operator == '-')
+	{
+		
+		if (dataType -> type == INT)
+			sprintf(resultBinary, "%d", operand1 - operand2);
+		
+			
+	}
+
+	else if (operator == '*')
+	{
+		if (dataType -> type == INT)
+			sprintf(resultBinary, "%d", operand1 * operand2);	
+		
+			
+	}
+
+	else if (operator == '/')
+	{
+		
+		if (dataType -> type == INT)
+			sprintf(resultBinary, "%d", operand1 / operand2);
+			
+		
+	}
+
+	else if (operator == '%')
+	{		
+		if (dataType -> type == INT)
+			sprintf(resultBinary, "%d", operand1 % operand2);
+		
+			
+	}
+
+	//total = result;
 }
 
 
