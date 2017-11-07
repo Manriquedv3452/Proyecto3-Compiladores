@@ -42,7 +42,7 @@ extern int previousTokenCode;
 #define yylex getToken
 #define YYERROR_VERBOSE 1
 
-int errorFound = 0;
+int errorFound = FALSE;
 int inFunction = FALSE;
 int inContext = FALSE;
 int unDecleared = FALSE;
@@ -308,10 +308,10 @@ constant_expression
 
 declaration
 	: declaration_specifiers  ';'				{ declaration_end(); }
-	| declaration_specifiers  init_declarator_list ';'   { declaration_end(); }	
+	| declaration_specifiers  init_declarator_list ';'   {  declaration_end(); }	
 	| static_assert_declaration
 	//| declaration_specifiers init_declarator_list error		{ yyerrok; }
-	| declaration_specifiers error ';'			    { yyerrok; }//err*/
+	| declaration_specifiers error ';'			    { yyerrok;  }//err*/
 
 	| declaration_specifiers  init_declarator_list error		{ yyerrok; }
 	//| error init_declarator_list ';'			    	{ yyerrok; }//err
@@ -335,13 +335,18 @@ declaration_specifiers
 init_declarator_list
 	: init_declarator
 	| init_declarator_list ',' init_declarator
-	| init_declarator_list error init_declarator			{ yyerrok; }
+	| init_declarator_list error 				{ yyerrok; }
 	;
 
 init_declarator
 	: declarator '=' initializer
 	| declarator
-	| declarator error initializer					{ yyerrok; }
+	| declarator error 					{ 
+					if(yychar == IDENTIFIER || yychar == I_CONSTANT || yychar == F_CONSTANT)
+						yyerrok; 
+
+					yyclearin;  
+					clearSemanticRecords(); }
 	;
 
 storage_class_specifier
@@ -521,7 +526,7 @@ pointer
 	//| '*' error pointer					{ yyerrok; }
 	| '*' error pointer					{ yyerrok; }
 	| '*' error						{ yyerrok; }
-	| error type_qualifier_list				{ yyerrok; }
+	//| error type_qualifier_list				{ yyerrok; }
 	;
 
 type_qualifier_list
@@ -1167,7 +1172,7 @@ void pushNewSemanticRecordDO(int literalType, DO_Data *op, char* value)
 		
 	newSemanticRecord -> dataBlock = newDataObject;
 	pushRecord(newSemanticRecord);
-	printList();
+	//printList();
 }
 void getLiteralResult(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord* dataType, int operand1, int operand2)
 {

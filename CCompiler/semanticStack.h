@@ -57,6 +57,7 @@ int searhErrorToken(char *token);
 SemanticRecord* getTopRecord(void);
 void printList(void);
 void popRecordWithoutDataBlock(void);
+void clearSemanticRecords(void);
 
 
 SemanticRecord *headRecord = NULL;
@@ -209,5 +210,13 @@ int searhErrorToken(char *token)
 		pos++;
 	}
 	return -1;
+}
+
+void clearSemanticRecords(void)
+{
+	while(headRecord -> next != tailRecord)
+	{
+		popRecord();
+	}
 }
 
