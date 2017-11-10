@@ -3,10 +3,10 @@ int r = 5, v = 2, v, v, v, v;
 int main()
 {
 	
-		//int ff = (v * 00000 + 24000 + (5 * 2))/2;
+		int ff = (v * 0 + 24000 + ((6 * 2)/2))/2;
 
 	
-		int a ,54;
+		int a = ff + 0;
 		int i, k, v, h;
 		//int var1;
 		int l = a + ff;

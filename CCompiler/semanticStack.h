@@ -1,4 +1,5 @@
 #include <string.h>
+#include "asm.h"
 //Semantic Analyzes
 
 #define MAX_VALUE_SIZE 500
@@ -30,6 +31,13 @@ typedef struct
 	
 } DO_Data;
 
+typedef struct
+{
+	char enterLabel[100];
+	char exitLabel[100];
+} SWITCH_Data;
+
+
 
 typedef struct semanticRecord
 {
@@ -38,7 +46,7 @@ typedef struct semanticRecord
 	enum dataKind kind;
 	int type;
 	char currentToken[MAX_VALUE_SIZE];
-	int line, column, cursorPosi;
+	int line, column, cursorPosi, stackPos;
 	void *dataBlock;
 
 } SemanticRecord;
@@ -65,6 +73,7 @@ SemanticRecord *tailRecord = NULL;
 SemanticRecord *currentRecord = NULL;
 int stackPos = 0;
 int tempStackPos = 0;
+FILE *assembly;
 
 
 //METHODS FOR STACK OF SEMANTIC RECORDS.
@@ -75,6 +84,13 @@ void initializeList(void)
 
 	headRecord -> next = tailRecord;
 	tailRecord -> previous = headRecord;
+
+	assembly = fopen("assembly.asm", "w");
+
+	fprintf(assembly, "%s\n", assignAddTemp);
+	fprintf(assembly, "%s\n", assignConstant);
+
+	fclose(assembly);
 }
 
 SemanticRecord* createSemanticRecord(enum dataKind type)
