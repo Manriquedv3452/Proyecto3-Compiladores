@@ -33,7 +33,7 @@ void save_id(void)
 {
 	char* token = strdup(yytext);
 	int pos = search(token);
-
+	
 	if (!inContext)
 	{
 		if (pos == -1)
@@ -187,23 +187,23 @@ void process_id(void)
 
 		
 	int pos = search(id);
-	printf("HOLA\n");
+
+	//printf("HOLA\n");
 	if (pos == -1)
 	{
-		
+
 		symbol = look_up_TS_ID(id);
-	
 		
 		if (symbol -> stackPos == -1)
 		{
-			
 			strcpy(RS -> currentToken, id);
-			RS -> kind = ERROR;
-			checkForDeclaredError(id, RS);
 			object -> type = ERROR;
+			RS -> type = ERROR;
+			checkForDeclaredError(id, RS);
+		
 		}
 		else
-		{	
+		{
 			strcpy(object -> varName, id);
 			object -> type = ID;
 			object -> stackPos = symbol -> stackPos;
@@ -234,7 +234,6 @@ void checkForDeclaredError(char *token, SemanticRecord* R)
 	DO_Data *datos;
 	SemanticRecord *RS;
 	int tokenPos = searhErrorToken(token);
-	
 	if (tokenPos == -1)
 	{
 		if (!look_up_error_TS_ID(token))
@@ -247,7 +246,7 @@ void checkForDeclaredError(char *token, SemanticRecord* R)
 			{
 				char note[100];
 				sprintf(note, "note, each undeclared identifier is reported only once for each function it appears in");
-				yynote(note, R -> line, R -> column, FALSE, RS -> cursorPosi);
+				yynote(note, R -> line, R -> column, FALSE, R -> cursorPosi);
 				unDecleared = TRUE;
 			}
 		}
@@ -631,7 +630,7 @@ void process_function(void)
 		yywarning(note, RS -> line, RS -> column, TRUE, RS -> cursorPosi);	
 	}
 
-		
+	
 	pushRecord(RS);		
 }
 
@@ -642,7 +641,7 @@ void call_functionNoParams(void)
 	sprintf(instruction, "call %s\n", RS -> currentToken);
 	popRecord();
 
-	generateCode(instruction);
+	generateCode(instruction);	
 }
 void generateCode(char *instruction)
 {

@@ -58,16 +58,19 @@ void initializeTable(void)
 
 void pushTable(void)
 {	
-	TableStack *temp;
-	temp = headTableStack -> next;
+	TableStack *temp = (TableStack*) malloc(sizeof(TableStack));
+	temp -> next = headTableStack -> next;
+	TableStack *newTable = (TableStack*) malloc(sizeof(TableStack));
 
-	headTableStack -> next = (TableStack*) malloc(sizeof(TableStack));
-	headSymbol = tailSymbol = headTableStack -> next -> symbolHead = headTableStack -> next -> symbolTail = (SymbolTable*) malloc(sizeof(SymbolTable));
+	headTableStack -> next = newTable;
 	headTableStack -> next -> symbolSize = 0;
-	
-	headTableStack -> next -> next = temp;
+	headTableStack -> next -> next = temp -> next;
 	headTableStack -> next -> next -> previous = headTableStack -> next;
 	headTableStack -> next -> previous = headTableStack;
+
+	headSymbol = tailSymbol = headTableStack -> next -> symbolHead = headTableStack -> next -> symbolTail = (SymbolTable*) malloc(sizeof(SymbolTable));
+
+	free(temp);
 
 }
 
@@ -102,10 +105,11 @@ void appendSymbol(char varName[], int line, int column, int cursorPosi, int varT
 		
 	SymbolTable* temp;
 	
-	temp = headSymbol -> next;
+	
+	temp = headTableStack -> next -> symbolHead -> next;
 	
 	tailSymbol = tailSymbol -> next = (SymbolTable*) malloc(sizeof(SymbolTable));	
-	
+
 	strcpy(tailSymbol -> varName, varName);
 	tailSymbol -> line = line;
 	tailSymbol -> column = column;
@@ -114,8 +118,7 @@ void appendSymbol(char varName[], int line, int column, int cursorPosi, int varT
 	tailSymbol -> cursorPosi = cursorPosi;
 	
 	headTableStack -> next -> symbolSize++;
-	headTableStack -> next -> symbolHead = headSymbol;
-	headTableStack -> next -> symbolTail = tailSymbol;
+
 	
 }
 
@@ -153,9 +156,8 @@ SymbolTable* look_up_TS_ID(char* id)
 	SymbolTable* currentSymbol;
 	int symbolPos = 0;
 
-	for (currentTableStack = headTableStack -> next; currentTableStack != tailTableStack; currentTableStack = currentTableStack -> next)
+	for (currentTableStack = headTableStack -> next; currentTableStack != tailTableStack && currentTableStack != NULL; currentTableStack = currentTableStack -> next)
 	{	
-		
 		currentSymbol = currentTableStack -> symbolHead -> next;
 		while (symbolPos < currentTableStack -> symbolSize && currentSymbol != NULL)
 		{
@@ -167,8 +169,9 @@ SymbolTable* look_up_TS_ID(char* id)
 			symbolPos++;
 		}	
 		symbolPos = 0;
+		
 	}
-	SymbolTable* ret;
+	SymbolTable* ret = (SymbolTable*) malloc(sizeof(SymbolTable));
 	ret -> stackPos = -1;
 	return ret;
 }
@@ -180,7 +183,7 @@ int look_up_error_TS_ID(char* id)
 	for (currentTableStack = headTableStack -> next; currentTableStack != tailTableStack; currentTableStack = currentTableStack -> next)
 	{
 		currentSymbol = currentTableStack -> symbolHead -> next;
-		while (symbolPos < currentTableStack -> symbolSize)
+		while (symbolPos < currentTableStack -> symbolSize && currentSymbol != NULL)
 		{
 			if (strcmp(currentSymbol -> varName, id) == 0 && currentSymbol -> varType == ERROR)
 			{
@@ -200,8 +203,8 @@ int look_up_top_pos(char* id)
 	int pos = 0;
 	if (headTableStack -> next != tailTableStack)
 	{
-		SymbolTable* currentSymbol =  headTableStack -> next -> symbolHead;
-		while (currentSymbol -> next != NULL)
+		SymbolTable* currentSymbol =  headTableStack -> next -> symbolHead -> next;
+		while (currentSymbol != NULL && pos < headTableStack -> symbolSize)
 		{
 			if (strcmp(currentSymbol -> next -> varName, id) == 0 && currentSymbol -> next -> varType != ERROR)
 			{
@@ -210,6 +213,7 @@ int look_up_top_pos(char* id)
 			currentSymbol = currentSymbol -> next;
 			pos++;
 		}
+	
 		return -1;
 	}
 }
@@ -239,7 +243,7 @@ SymbolTable* look_up_TS_function(char* id)
 	for (currentTableStack = headTableStack -> next; currentTableStack != tailTableStack; currentTableStack = currentTableStack -> next)
 	{
 		currentSymbol = currentTableStack -> symbolHead -> next;
-		while (symbolPos < currentTableStack -> symbolSize)
+		while (symbolPos < currentTableStack -> symbolSize && currentSymbol != NULL)
 		{
 			if (strcmp(currentSymbol -> varName, id) == 0 && currentSymbol -> varType != ERROR && currentSymbol -> varType != ID)
 			{
@@ -250,7 +254,7 @@ SymbolTable* look_up_TS_function(char* id)
 		}	
 		symbolPos = 0;
 	}
-	SymbolTable* ret;
+	SymbolTable* ret = (SymbolTable*) malloc(sizeof(SymbolTable));
 	ret -> stackPos = -1;
 	return ret;
 }
@@ -258,7 +262,8 @@ void printSymbols(void)
 {
 	
 	SymbolTable* currentSymbol = headTableStack -> next -> symbolHead -> next; 
-	while (currentSymbol != NULL)
+	int pos = 0;
+	while (pos < headTableStack -> symbolSize)
 	{
 		printf("%s\n", currentSymbol -> varName);
 		currentSymbol = currentSymbol -> next;

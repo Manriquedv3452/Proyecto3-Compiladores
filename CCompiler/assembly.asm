@@ -26,7 +26,21 @@ mov [esp + 16], ebx ;temp0 = v + i
 
 assignID 12, 16 ;i = temp0
 
-assignID 16, 0 ;a = 
+call f
+
+addIDs 12, 0 ;i + 7
+mov [esp + 20], ebx ;temp0 = i + 7
+
+addIDs 20, 0 ;temp0 + 7
+mov [esp + 20], ebx ;temp0 = temp0 + 7
+
+addIDs 20, 0 ;temp0 + 0
+mov [esp + 20], ebx ;temp0 = temp0 + 0
+
+addIDs 20, 0 ;temp0 + 2
+mov [esp + 20], ebx ;temp0 = temp0 + 2
+
+assignID 16, 20 ;a = temp0
 
 
 ret
