@@ -42,18 +42,32 @@ EOL [\n]
 
 #define MAXLEN 100
 
+#define CNRM  "\x1B[0m"
+#define CRED  "\x1B[31;1m"
+#define CGRN  "\x1B[32;1m"
+#define CYEL  "\x1B[33m"
+#define CBLU  "\x1B[34m"
+#define CMAG  "\x1B[35m"
+#define CCYN  "\x1B[36m"
+#define CWHT  "\x1B[0m"
+#define CWHTN  "\x1B[1m"
+
 extern void printError(char *errorType, char *token, int line, int previousColumn, int column, const char* errorInfo, int cursorPos); //main.c
 extern void printNote(char* note, char *token, int line, int column, const char *errorInfo, int cursorPos, int writeCode);
+extern void printWarning(char* warning, char *token, int line, int column, const char *warningInfo, int cursorPos, int writeCode);
 extern char lineCode[5000]; 							    //main.c
 
 extern void yyerror(const char *);  /* prints grammar violation message */
 extern void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi); 	//prints note
+extern void yywarning(char *warningInfo, int line, int column, int writeCode, int cursorPosi); 	//prints warning
+extern char* actualFunction;
 
 extern int sym_type(const char *);  /* returns type from symbol table */
 
 #define sym_type(identifier) IDENTIFIER /* with no symbol table, fake it */
 
 extern int errorFound;
+extern char fileNameParse[50];
 
 static void comment(void);
 static int check_type(void);
@@ -189,6 +203,11 @@ int cursorPos = 0;
 
 void yyerror(const char *s)
 {
+	if (strcmp(actualFunction, "") != 0)
+	{
+		printf("%s%s:%s In function %s‘%s’%s:\n", CWHTN, fileNameParse, CWHT, CWHTN, actualFunction, CWHT);
+		actualFunction = "";
+	}
 	int i = 0;
 	char errorType[MAXLEN];
 	while (i < strlen(s) && s[i] != ',')
@@ -211,6 +230,24 @@ void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi)
 	}
 	note[i] = '\0';
 	printNote(note, yytext, line, column, noteInfo, cursorPosi, writeCode); 
+}
+
+void yywarning(char *warningInfo, int line, int column, int writeCode, int cursorPosi)
+{
+	if (strcmp(actualFunction, "") != 0)
+	{
+		printf("%s%s:%s In function %s‘%s’%s:\n", CWHTN, fileNameParse, CWHT, CWHTN, actualFunction, CWHT);
+		actualFunction = "";
+	}
+	int i = 0;
+	char warning[MAXLEN];
+	while (i < strlen(warningInfo) && warningInfo[i] != ',')
+	{
+		warning[i] = warningInfo[i];
+		i++;
+	}
+	warning[i] = '\0';
+	printWarning(warning, yytext, line, column, warningInfo, cursorPosi, writeCode);
 }
 
 static void comment(void)

@@ -21,7 +21,12 @@ assignConstant 8, 2 ;v = 2
 global main
 main:
 
-assignConstant 12, 2 ;j = 2
+addIDs 8, 12 ;v + i
+mov [esp + 16], ebx ;temp0 = v + i
+
+assignID 12, 16 ;i = temp0
+
+assignID 16, 0 ;a = 
 
 
 ret

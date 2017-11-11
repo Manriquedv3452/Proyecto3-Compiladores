@@ -16,5 +16,7 @@ void initializeOutputFile(void);
 void process_assign(void);
 void start_function(void);
 void end_function(void);
+void process_function(void);
+void call_functionNoParams(void);
 
 FILE *assembly;

@@ -9,13 +9,12 @@
 #include "symbolTable.h"
 #define FALSE 0
 #define TRUE 1
-#define CWHT  "\x1B[0m"
-#define CWHTN  "\x1B[1m"
 
 #include "semanticActions.h"
 
 void yyerror(const char *);
 void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi);
+void yywarning(char *warningInfo, int line, int column, int writeCode, int cursorPosi);
 extern int getToken(void);
 extern char* yytext;
 extern int yylineno;
@@ -35,6 +34,7 @@ int errorFound = FALSE;
 int inFunction = FALSE;
 int inContext = FALSE;
 int unDecleared = FALSE;
+char* actualFunction;
 
 %}
 %token	IDENTIFIER I_CONSTANT F_CONSTANT STRING_LITERAL FUNC_NAME SIZEOF
@@ -59,7 +59,10 @@ int unDecleared = FALSE;
 
 primary_expression
 	: IDENTIFIER			{ 
-						if(nextToken == IDENTIFIER)process_id(); 
+						if(nextToken == IDENTIFIER)
+							process_id(); 
+						else if (nextToken == '(')
+							process_function(); 
 					}		
 	| constant
 	| string
@@ -106,9 +109,9 @@ generic_association
 	;
 
 postfix_expression
-	: primary_expression
+	: primary_expression 	
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' ')' 
+	| postfix_expression '(' ')' { call_functionNoParams(); }
 	| postfix_expression '(' argument_expression_list ')' 	
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression PTR_OP IDENTIFIER
@@ -265,7 +268,7 @@ conditional_expression
 
 assignment_expression
 	: conditional_expression
-	| unary_expression {printf("%s\n", strdup(yytext));} assignment_operator assignment_expression
+	| unary_expression  assignment_operator assignment_expression
 	//| error assignment_operator assignment_expression			    	{ yyerrok; }//err
 //	| unary_expression error assignment_expression				    	{ yyerrok; }//err
 //	| unary_expression assignment_operator error 				    	{ yyerrok; }//err*/

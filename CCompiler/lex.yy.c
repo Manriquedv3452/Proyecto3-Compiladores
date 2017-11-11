@@ -809,18 +809,32 @@ char *yytext;
 
 #define MAXLEN 100
 
+#define CNRM  "\x1B[0m"
+#define CRED  "\x1B[31;1m"
+#define CGRN  "\x1B[32;1m"
+#define CYEL  "\x1B[33m"
+#define CBLU  "\x1B[34m"
+#define CMAG  "\x1B[35m"
+#define CCYN  "\x1B[36m"
+#define CWHT  "\x1B[0m"
+#define CWHTN  "\x1B[1m"
+
 extern void printError(char *errorType, char *token, int line, int previousColumn, int column, const char* errorInfo, int cursorPos); //main.c
 extern void printNote(char* note, char *token, int line, int column, const char *errorInfo, int cursorPos, int writeCode);
+extern void printWarning(char* warning, char *token, int line, int column, const char *warningInfo, int cursorPos, int writeCode);
 extern char lineCode[5000]; 							    //main.c
 
 extern void yyerror(const char *);  /* prints grammar violation message */
 extern void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi); 	//prints note
+extern void yywarning(char *warningInfo, int line, int column, int writeCode, int cursorPosi); 	//prints warning
+extern char* actualFunction;
 
 extern int sym_type(const char *);  /* returns type from symbol table */
 
 #define sym_type(identifier) IDENTIFIER /* with no symbol table, fake it */
 
 extern int errorFound;
+extern char fileNameParse[50];
 
 static void comment(void);
 static int check_type(void);
@@ -833,7 +847,7 @@ int previousColumn = 0;
 int column = 0;
 int cursorPos = 0;
 
-#line 837 "lex.yy.c"
+#line 851 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -1051,9 +1065,9 @@ YY_DECL
 		}
 
 	{
-#line 71 "flex.l"
+#line 85 "flex.l"
 
-#line 1057 "lex.yy.c"
+#line 1071 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1122,552 +1136,552 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 72 "flex.l"
+#line 86 "flex.l"
 { count(); comment(); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 73 "flex.l"
+#line 87 "flex.l"
 { count(); column = 0; /* consume //-comment */ }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 75 "flex.l"
+#line 89 "flex.l"
 { count(); return(AUTO); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 76 "flex.l"
+#line 90 "flex.l"
 { count(); return(BREAK); }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 77 "flex.l"
+#line 91 "flex.l"
 { count(); return(CASE); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 78 "flex.l"
+#line 92 "flex.l"
 { count(); return(CHAR); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 79 "flex.l"
+#line 93 "flex.l"
 { count(); return(CONST); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 80 "flex.l"
+#line 94 "flex.l"
 { count(); return(CONTINUE); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 81 "flex.l"
+#line 95 "flex.l"
 { count(); return(DEFAULT); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 82 "flex.l"
+#line 96 "flex.l"
 { count(); return(DO); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 83 "flex.l"
+#line 97 "flex.l"
 { count(); return(DOUBLE); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 84 "flex.l"
+#line 98 "flex.l"
 { count(); return(ELSE); }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 85 "flex.l"
+#line 99 "flex.l"
 { count(); return(ENUM); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 86 "flex.l"
+#line 100 "flex.l"
 { count(); return(EXTERN); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 87 "flex.l"
+#line 101 "flex.l"
 { count(); return(FLOAT); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 88 "flex.l"
+#line 102 "flex.l"
 { count(); return(FOR); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 89 "flex.l"
+#line 103 "flex.l"
 { count(); return(GOTO); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 90 "flex.l"
+#line 104 "flex.l"
 { count(); return(IF); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 91 "flex.l"
+#line 105 "flex.l"
 { count(); return(INLINE); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 92 "flex.l"
+#line 106 "flex.l"
 { count(); return(INT); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 93 "flex.l"
+#line 107 "flex.l"
 { count(); return(LONG); }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 94 "flex.l"
+#line 108 "flex.l"
 { count(); return(REGISTER); }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 95 "flex.l"
+#line 109 "flex.l"
 { count(); return(RESTRICT); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 96 "flex.l"
+#line 110 "flex.l"
 { count(); return(RETURN); }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 97 "flex.l"
+#line 111 "flex.l"
 { count(); return(SHORT); }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 98 "flex.l"
+#line 112 "flex.l"
 { count(); return(SIGNED); }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 99 "flex.l"
+#line 113 "flex.l"
 { count(); return(SIZEOF); }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 100 "flex.l"
+#line 114 "flex.l"
 { count(); return(STATIC); }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 101 "flex.l"
+#line 115 "flex.l"
 { count(); return(STRUCT); }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 102 "flex.l"
+#line 116 "flex.l"
 { count(); return(SWITCH); }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 103 "flex.l"
+#line 117 "flex.l"
 { count(); return(TYPEDEF); }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 104 "flex.l"
+#line 118 "flex.l"
 { count(); return(UNION); }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 105 "flex.l"
+#line 119 "flex.l"
 { count(); return(UNSIGNED); }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 106 "flex.l"
+#line 120 "flex.l"
 { count(); return(VOID); }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 107 "flex.l"
+#line 121 "flex.l"
 { count(); return(VOLATILE); }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 108 "flex.l"
+#line 122 "flex.l"
 { count(); return(WHILE); }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 109 "flex.l"
+#line 123 "flex.l"
 { count(); return ALIGNAS; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 110 "flex.l"
+#line 124 "flex.l"
 { count(); return ALIGNOF; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 111 "flex.l"
+#line 125 "flex.l"
 { count(); return ATOMIC; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 112 "flex.l"
+#line 126 "flex.l"
 { count(); return BOOL; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 113 "flex.l"
+#line 127 "flex.l"
 { count(); return COMPLEX; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 114 "flex.l"
+#line 128 "flex.l"
 { count(); return GENERIC; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 115 "flex.l"
+#line 129 "flex.l"
 { count(); return IMAGINARY; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 116 "flex.l"
+#line 130 "flex.l"
 { count(); return NORETURN; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 117 "flex.l"
+#line 131 "flex.l"
 { count(); return STATIC_ASSERT; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 118 "flex.l"
+#line 132 "flex.l"
 { count(); return THREAD_LOCAL; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 119 "flex.l"
+#line 133 "flex.l"
 { count(); return FUNC_NAME; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 121 "flex.l"
+#line 135 "flex.l"
 { count(); return check_type(); }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 123 "flex.l"
+#line 137 "flex.l"
 { count(); return I_CONSTANT; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 124 "flex.l"
+#line 138 "flex.l"
 { count(); return I_CONSTANT; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 125 "flex.l"
+#line 139 "flex.l"
 { count(); return I_CONSTANT; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 126 "flex.l"
+#line 140 "flex.l"
 { count(); return I_CONSTANT; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 128 "flex.l"
+#line 142 "flex.l"
 { count(); return F_CONSTANT; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 129 "flex.l"
+#line 143 "flex.l"
 { count(); return F_CONSTANT; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 130 "flex.l"
+#line 144 "flex.l"
 { count(); return F_CONSTANT; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 131 "flex.l"
+#line 145 "flex.l"
 { count(); return F_CONSTANT; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 132 "flex.l"
+#line 146 "flex.l"
 { count(); return F_CONSTANT; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 133 "flex.l"
+#line 147 "flex.l"
 { count(); return F_CONSTANT; }
 	YY_BREAK
 case 59:
 /* rule 59 can match eol */
 YY_RULE_SETUP
-#line 135 "flex.l"
+#line 149 "flex.l"
 { count(); return STRING_LITERAL; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 137 "flex.l"
+#line 151 "flex.l"
 { count(); return ELLIPSIS; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 138 "flex.l"
+#line 152 "flex.l"
 { count(); return RIGHT_ASSIGN; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 139 "flex.l"
+#line 153 "flex.l"
 { count(); return LEFT_ASSIGN; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 140 "flex.l"
+#line 154 "flex.l"
 { count(); return ADD_ASSIGN; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 141 "flex.l"
+#line 155 "flex.l"
 { count(); return SUB_ASSIGN; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 142 "flex.l"
+#line 156 "flex.l"
 { count(); return MUL_ASSIGN; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 143 "flex.l"
+#line 157 "flex.l"
 { count(); return DIV_ASSIGN; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 144 "flex.l"
+#line 158 "flex.l"
 { count(); return MOD_ASSIGN; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 145 "flex.l"
+#line 159 "flex.l"
 { count(); return AND_ASSIGN; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 146 "flex.l"
+#line 160 "flex.l"
 { count(); return XOR_ASSIGN; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 147 "flex.l"
+#line 161 "flex.l"
 { count(); return OR_ASSIGN; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 148 "flex.l"
+#line 162 "flex.l"
 { count(); return RIGHT_OP; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 149 "flex.l"
+#line 163 "flex.l"
 { count(); return LEFT_OP; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 150 "flex.l"
+#line 164 "flex.l"
 { count(); return INC_OP; }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 151 "flex.l"
+#line 165 "flex.l"
 { count(); return DEC_OP; }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 152 "flex.l"
+#line 166 "flex.l"
 { count(); return PTR_OP; }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 153 "flex.l"
+#line 167 "flex.l"
 { count(); return AND_OP; }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 154 "flex.l"
+#line 168 "flex.l"
 { count(); return OR_OP; }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 155 "flex.l"
+#line 169 "flex.l"
 { count(); return LE_OP; }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 156 "flex.l"
+#line 170 "flex.l"
 { count(); return GE_OP; }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 157 "flex.l"
+#line 171 "flex.l"
 { count(); return EQ_OP; }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 158 "flex.l"
+#line 172 "flex.l"
 { count(); return NE_OP; }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 159 "flex.l"
+#line 173 "flex.l"
 { count(); return ';'; }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 160 "flex.l"
+#line 174 "flex.l"
 { count(); return '{'; }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 161 "flex.l"
+#line 175 "flex.l"
 { count(); return '}'; }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 162 "flex.l"
+#line 176 "flex.l"
 { count(); return ','; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 163 "flex.l"
+#line 177 "flex.l"
 { count(); return ':'; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 164 "flex.l"
+#line 178 "flex.l"
 { count(); return '='; }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 165 "flex.l"
+#line 179 "flex.l"
 { count(); return '('; }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 166 "flex.l"
+#line 180 "flex.l"
 { count(); return ')'; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 167 "flex.l"
+#line 181 "flex.l"
 { count(); return '['; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 168 "flex.l"
+#line 182 "flex.l"
 { count(); return ']'; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 169 "flex.l"
+#line 183 "flex.l"
 { count(); return '.'; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 170 "flex.l"
+#line 184 "flex.l"
 { count(); return '&'; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 171 "flex.l"
+#line 185 "flex.l"
 { count(); return '!'; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 172 "flex.l"
+#line 186 "flex.l"
 { count(); return '~'; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 173 "flex.l"
+#line 187 "flex.l"
 { count(); return '-'; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 174 "flex.l"
+#line 188 "flex.l"
 { count(); return '+'; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 175 "flex.l"
+#line 189 "flex.l"
 { count(); return '*'; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 176 "flex.l"
+#line 190 "flex.l"
 { count(); return '/'; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 177 "flex.l"
+#line 191 "flex.l"
 { count(); return '%'; }
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 178 "flex.l"
+#line 192 "flex.l"
 { count(); return '<'; }
 	YY_BREAK
 case 102:
 YY_RULE_SETUP
-#line 179 "flex.l"
+#line 193 "flex.l"
 { count(); return '>'; }
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 180 "flex.l"
+#line 194 "flex.l"
 { count(); return '^'; }
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 181 "flex.l"
+#line 195 "flex.l"
 { count(); return '|'; }
 	YY_BREAK
 case 105:
 YY_RULE_SETUP
-#line 182 "flex.l"
+#line 196 "flex.l"
 { count(); return '?'; }
 	YY_BREAK
 case 106:
 YY_RULE_SETUP
-#line 184 "flex.l"
+#line 198 "flex.l"
 { count(); /* whitespace separates tokens */ }
 	YY_BREAK
 case 107:
 /* rule 107 can match eol */
 YY_RULE_SETUP
-#line 185 "flex.l"
+#line 199 "flex.l"
 { count(); }
 	YY_BREAK
 case 108:
 YY_RULE_SETUP
-#line 186 "flex.l"
+#line 200 "flex.l"
 { count(); printError("lexical error", yytext, yylineno, previousColumn, column, "is not a valid token", cursorPos); }
 	YY_BREAK
 case 109:
 YY_RULE_SETUP
-#line 188 "flex.l"
+#line 202 "flex.l"
 ECHO;
 	YY_BREAK
-#line 1671 "lex.yy.c"
+#line 1685 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2680,12 +2694,17 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 188 "flex.l"
+#line 202 "flex.l"
 
 
 
 void yyerror(const char *s)
 {
+	if (strcmp(actualFunction, "") != 0)
+	{
+		printf("%s%s:%s In function %s‘%s’%s:\n", CWHTN, fileNameParse, CWHT, CWHTN, actualFunction, CWHT);
+		actualFunction = "";
+	}
 	int i = 0;
 	char errorType[MAXLEN];
 	while (i < strlen(s) && s[i] != ',')
@@ -2708,6 +2727,24 @@ void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi)
 	}
 	note[i] = '\0';
 	printNote(note, yytext, line, column, noteInfo, cursorPosi, writeCode); 
+}
+
+void yywarning(char *warningInfo, int line, int column, int writeCode, int cursorPosi)
+{
+	if (strcmp(actualFunction, "") != 0)
+	{
+		printf("%s%s:%s In function %s‘%s’%s:\n", CWHTN, fileNameParse, CWHT, CWHTN, actualFunction, CWHT);
+		actualFunction = "";
+	}
+	int i = 0;
+	char warning[MAXLEN];
+	while (i < strlen(warningInfo) && warningInfo[i] != ',')
+	{
+		warning[i] = warningInfo[i];
+		i++;
+	}
+	warning[i] = '\0';
+	printWarning(warning, yytext, line, column, warningInfo, cursorPosi, writeCode);
 }
 
 static void comment(void)

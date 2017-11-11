@@ -4,17 +4,11 @@ int main()
 {
 	
 	
-		//int i = v;
+		int i = v + i;
 		//r = i;
-		switch(x)
-		{
-			case 2:
-				break;
-			case 4:
-				int j = 2;
-				break;
-		}
-		return 0;
+		//i = v;
+		//f();
+		int a = j + 7 + 7 + 0+2;
 		//printf("%d\n", v);
 		//int var2;
 		//int var3 = var1 + var2;

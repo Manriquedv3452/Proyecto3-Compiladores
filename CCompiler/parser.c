@@ -14,6 +14,7 @@ extern FILE* yyin;
 void printError(char *errorType, char *token, int line, int previousColumn, int column, const char *errorInfo, int cursorPos);
 void printLineCodeInfo(int column);
 void printNote(char *note,  char *token, int line, int column, const char *errorInfo, int cursorPos, int writeCode);
+void printWarning(char* warning, char *token, int line, int column, const char *warningInfo, int cursorPos, int writeCode);
 int parser(char* fileNameParse);
 
 char fileNameParse[50];
@@ -34,8 +35,12 @@ int parser(char fileNamePar[])
 	
 	
 		fclose(FileTemp);
-		printf("Compilation finished with %d errors.\n", numberOfErrors);
-		system(" nasm -f elf assembly.asm && gcc -m32 -o assembly assembly.o ");
+		
+
+		if (numberOfErrors == 0)
+			system(" nasm -f elf assembly.asm && gcc -m32 -o assembly assembly.o ");
+		else
+			printf("\n\nCompilation finished with %d errors.\n", numberOfErrors);
 	}
 
 	return 0;
@@ -123,18 +128,7 @@ void printError(char *errorType, char *token, int line, int previousColumn, int 
 	printLineCodeInfo(column);
 }
 
-void printLineCodeInfo(int column)
-{
-	//PRINT LINE OF CODE WITH CURSOR
-	printf("%s\n", lineCode);
 
-	for (int i = 0; i < column; i++)
-	{
-		printf(" ");
-	}
-
-	printf("%s^%s\n\n", CGRN, CWHT);
-}
 
 void printNote(char* note, char *token, int line, int column, const char *noteInfo, int cursorPos, int writeCode)
 {
@@ -168,4 +162,52 @@ void printNote(char* note, char *token, int line, int column, const char *noteIn
 
 	if (writeCode != 0)
 		printLineCodeInfo(column - 1);
+}
+
+void printWarning(char* warning, char *token, int line, int column, const char *warningInfo, int cursorPos, int writeCode)
+{
+	memset(lineCode, '\0', 5000);
+	int cursor = ftell(yyin);
+	int c;
+	int i = 0;
+
+	fseek(FileTemp, cursorPos - column, SEEK_SET);
+	while ((c = fgetc(FileTemp)) != EOF && c != '\n' && i != 150)
+	{
+		if (c == '\t')
+			lineCode[i++] = ' ';
+		else
+			lineCode[i++] = c;
+
+	}
+	fseek(FileTemp, cursor, SEEK_SET);
+
+	printf("%s%s:%d:%d: %s%s: %s", CWHTN, fileNameParse, line, column, CMAG, warning, CWHT);
+	
+	
+	
+	int j = 8;
+	while (j < strlen(warningInfo))
+	{
+		printf("%c", warningInfo[j]);
+		j ++;
+	}
+	printf("\n");
+
+	if (writeCode != 0)
+		printLineCodeInfo(column - 2);
+}
+
+
+void printLineCodeInfo(int column)
+{
+	//PRINT LINE OF CODE WITH CURSOR
+	printf("%s\n", lineCode);
+
+	for (int i = 0; i < column; i++)
+	{
+		printf(" ");
+	}
+
+	printf("%s^%s\n\n", CGRN, CWHT);
 }

@@ -1,5 +1,14 @@
 //functions
 #include "asm.h"
+#define CNRM  "\x1B[0m"
+#define CRED  "\x1B[31;1m"
+#define CGRN  "\x1B[32;1m"
+#define CYEL  "\x1B[33m"
+#define CBLU  "\x1B[34m"
+#define CMAG  "\x1B[35m"
+#define CCYN  "\x1B[36m"
+#define CWHT  "\x1B[0m"
+#define CWHTN  "\x1B[1m"
 
 char resultBinary[MAX_VALUE_SIZE];
 int tempNumber = 0;
@@ -46,7 +55,8 @@ void save_id(void)
 		}
 	} 
 	else if (pos == -1)
-	{
+	{	
+		
 		pos = look_up_top_pos(token);
 		if (pos == -1)
 		{
@@ -177,21 +187,23 @@ void process_id(void)
 
 		
 	int pos = search(id);
-
+	printf("HOLA\n");
 	if (pos == -1)
 	{
-
-		symbol = look_up_TS(id);
+		
+		symbol = look_up_TS_ID(id);
+	
 		
 		if (symbol -> stackPos == -1)
 		{
+			
 			strcpy(RS -> currentToken, id);
 			RS -> kind = ERROR;
 			checkForDeclaredError(id, RS);
 			object -> type = ERROR;
 		}
 		else
-		{
+		{	
 			strcpy(object -> varName, id);
 			object -> type = ID;
 			object -> stackPos = symbol -> stackPos;
@@ -222,9 +234,10 @@ void checkForDeclaredError(char *token, SemanticRecord* R)
 	DO_Data *datos;
 	SemanticRecord *RS;
 	int tokenPos = searhErrorToken(token);
+	
 	if (tokenPos == -1)
 	{
-		if (!look_up_error_TS(token))
+		if (!look_up_error_TS_ID(token))
 		{
 			char error[100];
 			sprintf(error, "semantic error, %s'%s'%s undeclared (first use in this function)", CWHTN, token, CWHT);
@@ -579,6 +592,9 @@ void start_function(void)
 	generateCode(instruction);
 
 	appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, FUNCTION, 0);
+
+	actualFunction = RS -> currentToken;
+
 	popRecord();
 	popRecord();	//function type 
 }
@@ -586,8 +602,48 @@ void start_function(void)
 void end_function(void)
 {
 	generateCode("\nret\n");
+	actualFunction = "";
 }
 
+void process_function(void)
+{
+	SemanticRecord *RS;
+	SymbolTable* symbol;
+	char *id;
+
+	id = previousToken;
+	
+	RS = createSemanticRecord(FUNCTION);
+	strcpy(RS -> currentToken, id);	
+	RS -> line = yylineno;
+	RS -> column = previousColumn;
+	RS -> cursorPosi = cursorPos;
+	RS -> type = FUNCTION;
+		
+
+
+	symbol = look_up_TS_function(id);
+	
+	if (symbol -> stackPos == -1)
+	{
+		char note[100];
+		sprintf(note, "warning, implicit declaration of function %s‘%s’%s [-Wimplicit-function-declaration]", CWHTN, id, CWHT);
+		yywarning(note, RS -> line, RS -> column, TRUE, RS -> cursorPosi);	
+	}
+
+		
+	pushRecord(RS);		
+}
+
+void call_functionNoParams(void)
+{
+	SemanticRecord* RS = getTopRecord();
+	char instruction[50];
+	sprintf(instruction, "call %s\n", RS -> currentToken);
+	popRecord();
+
+	generateCode(instruction);
+}
 void generateCode(char *instruction)
 {
 		assembly = fopen("assembly.asm", "a");

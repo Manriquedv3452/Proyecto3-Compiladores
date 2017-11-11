@@ -185,7 +185,7 @@ int search(char* token)
 	int pos = 0;
 	for (currentRecord = headRecord -> next; currentRecord != tailRecord; currentRecord = currentRecord -> next)
 	{
-		if ((strcmp(currentRecord -> currentToken, token)) == 0 && currentRecord -> kind != ERROR)
+		if ((strcmp(currentRecord -> currentToken, token)) == 0 && currentRecord -> kind != ERROR && currentRecord -> kind != FUNCTION)
 		{
 			return pos;
 		}
