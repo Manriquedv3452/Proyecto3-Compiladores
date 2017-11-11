@@ -1,22 +1,27 @@
-int r = 5, v = 2, v, v, v, v;
+int r = 5, v = 2;
 
 int main()
 {
 	
-		int ff = (v * 0 + 24000 + ((6 * 2)/2))/2;
-
 	
-		int a = ff + 0;
-		int i, k, v, h;
-		//int var1;
-		int l = a + ff;
+		//int i = v;
+		//r = i;
+		switch(x)
+		{
+			case 2:
+				break;
+			case 4:
+				int j = 2;
+				break;
+		}
+		return 0;
 		//printf("%d\n", v);
 		//int var2;
 		//int var3 = var1 + var2;
 		//int y = i < var3;
-		
 		//int m;
 		//printf("%d\n", v);
 	
 }
+
 

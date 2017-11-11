@@ -38,9 +38,8 @@ void popTable(void);
 void appendSymbol(char varName[], int line, int column, int cursorPosi, int varType, int stackPos);
 void popSymbol(void);
 void clearSymbols(void);
-int look_up_TS(char* id);
+SymbolTable* look_up_TS(char* id);
 int look_up_top_pos(char* id);
-int look_up_TS(char* id);
 void printSymbols(void);
 SymbolTable* getSymbolInPos(int pos);
 
@@ -125,6 +124,10 @@ void popSymbol(void)
 {
 	SymbolTable* currentSymbol = headSymbol;
 	SymbolTable* temp = headSymbol -> next;
+
+	if (currentSymbol -> varType != FUNCTION)
+		stackPos -= 4;
+
 	if (currentSymbol -> next == tailSymbol){
 	    tailSymbol = currentSymbol;
 	}
@@ -144,34 +147,47 @@ void clearSymbols(void)
 }
 
 
-int look_up_TS(char* id)
+SymbolTable* look_up_TS(char* id)
 {
 	SymbolTable* currentSymbol;
+	int symbolPos = 0;
+
 	for (currentTableStack = headTableStack -> next; currentTableStack != tailTableStack; currentTableStack = currentTableStack -> next)
 	{
-		for (currentSymbol = currentTableStack -> symbolHead -> next; currentSymbol != NULL; currentSymbol = currentSymbol -> next)
+		currentSymbol = currentTableStack -> symbolHead -> next;
+		while (symbolPos < currentTableStack -> symbolSize)
 		{
 			if (strcmp(currentSymbol -> varName, id) == 0 && currentSymbol -> varType != ERROR)
 			{
-				return 1;
+				return currentSymbol;
 			}
+			currentSymbol = currentSymbol -> next;
+			symbolPos++;
 		}	
+		symbolPos = 0;
 	}
-	return 0;
+	SymbolTable* ret;
+	ret -> stackPos = -1;
+	return ret;
 }
 
 int look_up_error_TS(char* id)
 {
 	SymbolTable* currentSymbol;
+	int symbolPos = 0;
 	for (currentTableStack = headTableStack -> next; currentTableStack != tailTableStack; currentTableStack = currentTableStack -> next)
 	{
-		for (currentSymbol = currentTableStack -> symbolHead -> next; currentSymbol != NULL; currentSymbol = currentSymbol -> next)
+		currentSymbol = currentTableStack -> symbolHead -> next;
+		while (symbolPos < currentTableStack -> symbolSize)
 		{
-			if (strcmp(currentSymbol -> varName, id) == 0 && currentSymbol -> varType == ERROR)
+			if (strcmp(currentSymbol -> varName, id) == 0 && currentSymbol -> varType != ERROR)
 			{
 				return 1;
 			}
+			currentSymbol = currentSymbol -> next;
+			symbolPos++;
 		}	
+		symbolPos = 0;
 	}
 	return 0;
 }

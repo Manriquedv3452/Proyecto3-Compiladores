@@ -10,6 +10,9 @@
 FILE *output;
 //FILE *errors;
 FILE *file;
+
+extern void initializeOutputFile(void);
+
 int lineNumber = 1;
 char fileName[50];
 
@@ -46,6 +49,8 @@ int main(int argc, char *argv[])
 	fclose(validFile);
 	initializeList();
 	initializeTable();
+	initializeOutputFile();
+	
 
 	/*output = freopen("temp.c", "w", stdout);
 	fclose(output);

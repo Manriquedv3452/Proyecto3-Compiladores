@@ -1,8 +1,10 @@
 //functions
+#include "asm.h"
 
 char resultBinary[MAX_VALUE_SIZE];
 int tempNumber = 0;
 
+FILE *assembly;
 
 void save_type(void)
 {
@@ -22,6 +24,7 @@ void save_id(void)
 {
 	char* token = strdup(yytext);
 	int pos = search(token);
+
 	if (!inContext)
 	{
 		if (pos == -1)
@@ -34,7 +37,10 @@ void save_id(void)
 			RS -> line = yylineno;
 			RS -> column = previousColumn;
 			RS -> cursorPosi = cursorPos;
-	
+			RS -> stackPos = stackPos;
+			
+			stackPos += 4;
+
 			pushRecord(RS);
 			//printList();
 		}
@@ -51,6 +57,9 @@ void save_id(void)
 			RS -> line = yylineno;
 			RS -> column = previousColumn;	
 			RS -> cursorPosi = cursorPos;
+			RS -> stackPos = stackPos;
+			
+			stackPos += 4;
 	
 			pushRecord(RS);
 			//printList();
@@ -95,11 +104,11 @@ void declaration_end(void)
 	{
 		if (RS -> kind == ERROR)
 		{
-			appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, ERROR, stackPos);
+			appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, ERROR, 0);
 		}
 		else
 		{
-			appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, dataType -> type, stackPos);
+			appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, dataType -> type, RS -> stackPos);
 		}
 		popRecord();
 		RS = getTopRecord();
@@ -149,6 +158,7 @@ void process_id(void)
 {
 	DO_Data* object;
 	SemanticRecord *RS;
+	SymbolTable* symbol;
 	char *id;
 
 	id = strdup(yytext);
@@ -165,9 +175,15 @@ void process_id(void)
 	object -> column = previousColumn;
 	object -> cursorPosi = cursorPos;
 
-	if (search(id) == -1)
+		
+	int pos = search(id);
+
+	if (pos == -1)
 	{
-		if (!look_up_TS(id))
+
+		symbol = look_up_TS(id);
+		
+		if (symbol -> stackPos == -1)
 		{
 			strcpy(RS -> currentToken, id);
 			RS -> kind = ERROR;
@@ -178,19 +194,26 @@ void process_id(void)
 		{
 			strcpy(object -> varName, id);
 			object -> type = ID;
+			object -> stackPos = symbol -> stackPos;
+			RS -> stackPos = symbol -> stackPos;
 			RS -> type = ID;
 		}
 		
 	}
 	else
 	{
+		SemanticRecord *oldID = getSemanticRecordInPos(pos);
+	
 		strcpy(object -> varName, id);
 		object -> type = ID;
+		object -> stackPos = oldID -> stackPos;
+
 		RS -> type = ID;
+		RS -> stackPos = oldID -> stackPos;
 	}
 	
 	RS -> dataBlock = object;
-	pushRecord(RS);
+	pushRecord(RS);	
 	
 }
 
@@ -231,6 +254,18 @@ void eval_binary(void)
 	operator = RS -> type; popRecord(); RS = getTopRecord();
 	DO_Data* op1 = (DO_Data*) RS -> dataBlock; popRecordWithoutDataBlock(); 
 
+	if (op1 -> type == TEMP)
+	{
+		tempNumber--;
+		stackPos -= 4;
+	}
+
+	if (op2 -> type == TEMP)
+	{
+		tempNumber--;
+		stackPos -= 4;
+	}
+
 	//printf("%s\n", op1 -> currentToken);
 	if (op1 -> type == ERROR || op2 -> type == ERROR)
 	{
@@ -261,6 +296,7 @@ void eval_binary(void)
 		newTemp -> type = TEMP;
 		strcpy(newTemp -> varName, tempName);
 		newTemp -> stackPos = stackPos;
+		RS -> stackPos = stackPos;
 	
 		stackPos += 4;
 
@@ -269,8 +305,11 @@ void eval_binary(void)
 
 		pushRecord(RS);
 
-		sprintf(instruction, "assignAddTemp %d %d %d\n", op1 -> stackPos, op2 -> stackPos, newTemp -> stackPos);
+		sprintf(instruction, "addIDs %d, %d ;%s + %s", op1 -> stackPos, op2 -> stackPos, op1 -> value, op2 -> value);	
 
+		generateCode(instruction);
+
+		sprintf(instruction, "mov [esp + %d], ebx ;%s = %s + %s\n", newTemp -> stackPos,newTemp -> varName, op1 -> value, op2 -> value);	
 		generateCode(instruction);
 		
 		
@@ -410,6 +449,8 @@ void pushNewSemanticRecordDO(int literalType, DO_Data *op, char* value)
 	{
 		strcpy(newDataObject -> varName, op -> varName);		
 		strcpy(newSemanticRecord -> currentToken, op -> varName);
+		newDataObject -> stackPos = op -> stackPos;
+		newSemanticRecord -> stackPos = op -> stackPos;
 	
 	}
 	
@@ -470,7 +511,82 @@ void getLiteralResult(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord*
 	//total = result;
 }
 
+void process_assign(void)
+{
+	SemanticRecord* RS;
+	RS = getTopRecord();
+	DO_Data* temp = (DO_Data*) RS -> dataBlock;
 
+	
+
+	char instruction[100];
+	int stack;
+	char* nameID;
+
+	if (temp -> type != LITERAL)
+	{
+		stack = RS -> stackPos;
+		nameID = RS -> currentToken;
+
+		if (RS -> type == TEMP)
+		{
+			tempNumber--;
+			stackPos -= 4;
+		}
+
+		popRecord();
+	
+		RS = getTopRecord();
+
+		
+		sprintf(instruction, "assignID %d, %d ;%s = %s\n", RS -> stackPos, stack, RS -> currentToken, nameID);
+	
+		generateCode(instruction);
+	}
+	else
+	{
+		char* value = temp -> value;
+		popRecord();
+		RS = getTopRecord();
+
+		sprintf(instruction, "assignConstant %d, %s ;%s = %s\n", RS -> stackPos, value, RS -> currentToken, value);
+
+		generateCode(instruction);
+	}
+}
+
+void initializeOutputFile(void)
+{
+
+	assembly = fopen("assembly.asm", "w");
+
+	fprintf(assembly, "%s\n", addIDs);
+	fprintf(assembly, "%s\n", assignConstant);
+	fprintf(assembly, "%s\n", assignID);
+	//fprintf(assembly, "mov rbp, rsp\n");
+
+	fclose(assembly);
+	
+}
+
+void start_function(void)
+{
+	SemanticRecord* RS;
+	RS = getTopRecord();
+	char instruction[50];
+	sprintf(instruction, "global %s\n%s:\n", RS -> currentToken, RS -> currentToken);
+
+	generateCode(instruction);
+
+	appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, FUNCTION, 0);
+	popRecord();
+	popRecord();	//function type 
+}
+
+void end_function(void)
+{
+	generateCode("\nret\n");
+}
 
 void generateCode(char *instruction)
 {
@@ -478,3 +594,4 @@ void generateCode(char *instruction)
 		fprintf(assembly, "%s\n", instruction);
 		fclose(assembly);
 }
+

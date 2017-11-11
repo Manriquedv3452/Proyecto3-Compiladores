@@ -22,6 +22,7 @@ extern int yylineno;
 extern int column;
 extern int previousColumn;
 extern void print(void);
+extern int nextToken;
 
 extern char* previousToken;
 extern int cursorPos;
@@ -57,12 +58,14 @@ int unDecleared = FALSE;
 %%
 
 primary_expression
-	: IDENTIFIER			{ process_id(); }		
+	: IDENTIFIER			{ 
+						if(nextToken == IDENTIFIER)process_id(); 
+					}		
 	| constant
 	| string
-	| '(' expression ')'			
+	| '(' expression ')'		
 	| generic_selection
-	| '(' error ')'		    		{ yyerrok; }//err
+	//| '(' error ')'		    		{ yyerrok; }//err
 	| '(' expression error			{ yyerrok; }
 	;
 
@@ -105,8 +108,8 @@ generic_association
 postfix_expression
 	: primary_expression
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' ')'
-	| postfix_expression '(' argument_expression_list ')'		
+	| postfix_expression '(' ')' 
+	| postfix_expression '(' argument_expression_list ')' 	
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression PTR_OP IDENTIFIER
 	| postfix_expression INC_OP
@@ -114,14 +117,14 @@ postfix_expression
 	| '(' type_name ')' '{' initializer_list '}'
 	| '(' type_name ')' '{' initializer_list ',' '}'
 
-	| postfix_expression '[' error ']'					{ yyerrok; }
-	| postfix_expression '(' error ')'					{ yyerrok; }
+	//| postfix_expression '[' error ']'					{ yyerrok; }
+	//| postfix_expression '(' error ')'					{ yyerrok; }
 
-	| '(' error ')' '{' initializer_list '}'				{ yyerrok; }
-	| '(' type_name ')' '{' error '}'					{ yyerrok; }
+	//| '(' error ')' '{' initializer_list '}'				{ yyerrok; }
+	//| '(' type_name ')' '{' error '}'					{ yyerrok; }
 
-	| '(' error ')' '{' initializer_list ',' '}'				{ yyerrok; }
-	| '(' type_name ')' '{' error ',' '}'					{ yyerrok; }
+	//| '(' error ')' '{' initializer_list ',' '}'				{ yyerrok; }
+	//| '(' type_name ')' '{' error ',' '}'					{ yyerrok; }
 	
 	| postfix_expression '(' argument_expression_list error			{ yyerrok; }
 	| postfix_expression '[' expression error				{ yyerrok; }
@@ -262,10 +265,10 @@ conditional_expression
 
 assignment_expression
 	: conditional_expression
-	| unary_expression assignment_operator assignment_expression
+	| unary_expression {printf("%s\n", strdup(yytext));} assignment_operator assignment_expression
 	//| error assignment_operator assignment_expression			    	{ yyerrok; }//err
-	| unary_expression error assignment_expression				    	{ yyerrok; }//err
-	| unary_expression assignment_operator error 				    	{ yyerrok; }//err*/
+//	| unary_expression error assignment_expression				    	{ yyerrok; }//err
+//	| unary_expression assignment_operator error 				    	{ yyerrok; }//err*/
 	;
 
 assignment_operator
@@ -296,7 +299,7 @@ constant_expression
 
 declaration
 	: declaration_specifiers  ';'				{ declaration_end(); }
-	| declaration_specifiers  init_declarator_list ';'   {  printList(); declaration_end(); }	
+	| declaration_specifiers  init_declarator_list ';'   { declaration_end(); }	
 	| static_assert_declaration
 	//| declaration_specifiers init_declarator_list error		{ yyerrok; }
 	| declaration_specifiers error ';'			    { yyerrok;  }//err*/
@@ -327,7 +330,7 @@ init_declarator_list
 	;
 
 init_declarator
-	: declarator '=' initializer
+	: declarator '=' initializer				{ process_assign(); }
 	| declarator
 	| declarator error 					{ 
 					if(yychar == IDENTIFIER || yychar == I_CONSTANT || yychar == F_CONSTANT)
@@ -486,9 +489,9 @@ direct_declarator
 	| direct_declarator '[' type_qualifier_list assignment_expression ']'
 	| direct_declarator '[' type_qualifier_list ']'
 	| direct_declarator '[' assignment_expression ']'
-	| direct_declarator '(' parameter_type_list ')'
+	| direct_declarator '(' parameter_type_list ')' 
 	| direct_declarator '(' ')'
-	| direct_declarator '(' identifier_list ')'
+	| direct_declarator '(' identifier_list ')'  
 
 	//| '(' error ')'     							{ yyerrok; }//err
 	//| error '[' ']'								{ yyerrok; }
@@ -584,7 +587,7 @@ direct_abstract_declarator
 	| direct_abstract_declarator '[' assignment_expression ']'
 	| '(' ')'
 	| '(' parameter_type_list ')'
-	| direct_abstract_declarator '(' ')'
+	| direct_abstract_declarator '(' ')' 
 	| direct_abstract_declarator '(' parameter_type_list ')'
 //	| '(' error ')'							{ yyerrok; }
 	//| '(' parameter_type_list error					{ yyerrok;}
@@ -670,7 +673,7 @@ block_item
 
 expression_statement
 	: ';'
-	| expression ';'
+	| expression ';' 
 	//| error ';'		       { yyerrok; }//err
 	| expression error 		{  yyerrok; }
 	;
@@ -752,17 +755,16 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator declaration_list  { inContext = TRUE; popRecord(); popRecord(); pushTable(); } compound_statement	{ inContext = FALSE; popTable();}			
-	| declaration_specifiers declarator  { inContext = TRUE; popRecord(); popRecord(); pushTable(); } compound_statement	{ unDecleared = FALSE; inContext = FALSE; popTable();}				
+	: declaration_specifiers declarator { start_function(); stackPos -= 4; }  declaration_list  { inContext = TRUE; pushTable(); } compound_statement	{ end_function(); unDecleared = FALSE; inContext = FALSE; popTable(); stackPos -= 4; /*temp*/ }
+
+			
+	| declaration_specifiers declarator  
+
+		{ inContext = TRUE;  start_function(); stackPos -= 4; pushTable(); } 
+
+		compound_statement
 	
-	//| declaration_specifiers declarator error compound_statement					{ yyerrok; }
-	//| error declarator compound_statement								{ yyerrok; }	
-	//| error declarator declaration_list compound_statement						{ yyerrok; }	
-	//| declaration_specifiers error declaration_list compound_statement				{ yyerrok; }
-	//| declaration_specifiers declarator error compound_statement	    				{ yyerrok; }//
-	//| declaration_specifiers declarator declaration_list error					{ yyerrok; }
-	//| declaration_specifiers error compound_statement		    				{ yyerrok; }
-	//| declaration_specifiers declarator error				    			{ yyerrok; }
+		{ end_function(); unDecleared = FALSE; inContext = FALSE; popTable(); stackPos -= 4; /*temp*/}				
 	;
 
 declaration_list

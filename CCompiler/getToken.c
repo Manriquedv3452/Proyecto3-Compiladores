@@ -23,6 +23,7 @@ int getToken(void)
 	}
 
 	nextToken = yylex();
+
 	return nextToken;
 }
 

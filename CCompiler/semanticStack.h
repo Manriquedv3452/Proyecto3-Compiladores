@@ -1,5 +1,4 @@
 #include <string.h>
-#include "asm.h"
 //Semantic Analyzes
 
 #define MAX_VALUE_SIZE 500
@@ -13,7 +12,8 @@ enum dataKind
 	ERROR = 604,
 	TEMP = 605, 		//DO DATATYPE
 	NAME = 606,		//DO DATATYPE
-	ID = 607		//DO DATATYPE
+	ID = 607,		//DO DATATYPE
+	FUNCTION = 608
 };
 
 
@@ -71,9 +71,8 @@ void clearSemanticRecords(void);
 SemanticRecord *headRecord = NULL;
 SemanticRecord *tailRecord = NULL;
 SemanticRecord *currentRecord = NULL;
-int stackPos = 0;
-int tempStackPos = 0;
-FILE *assembly;
+int stackPos = 4;
+
 
 
 //METHODS FOR STACK OF SEMANTIC RECORDS.
@@ -85,12 +84,6 @@ void initializeList(void)
 	headRecord -> next = tailRecord;
 	tailRecord -> previous = headRecord;
 
-	assembly = fopen("assembly.asm", "w");
-
-	fprintf(assembly, "%s\n", assignAddTemp);
-	fprintf(assembly, "%s\n", assignConstant);
-
-	fclose(assembly);
 }
 
 SemanticRecord* createSemanticRecord(enum dataKind type)

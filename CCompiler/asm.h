@@ -1,12 +1,16 @@
-char* assignAddTemp = "%%macro assignAddTemp 3\n"		
-		"\tmov ebx, [rsp + %1]\n"
-		"\tmov ecx, [rsp + %2]\n"
+char* addIDs = "\%macro addIDs 2\n"		
+		"\tmov ebx, [esp + %1]\n"
+		"\tmov ecx, [esp + %2]\n"
 		"\tadd ebx, ecx\n"
-		"\tmov [rsp + %2], ebx\n"
-		"%%endmacro\n";
+		"\%endmacro\n";
 
-char* assignConstant = "%%macro assignConstant 2\n"		
-			"\tmov [rsp + %1], %2\n"
-			"%%endmacro\n";
+char* assignConstant = "\%macro assignConstant 2\n"
+			"\tmov ebx, %2\n"		
+			"\tmov [esp + %1], bx\n"
+			"\%endmacro\n";
 
+char* assignID = "\%macro assignID 2\n"
+		 "\tmov ebx, [esp + %2]\n"
+		 "\tmov [esp + %1], bx\n"
+		 "\t\%endmacro\n";
 

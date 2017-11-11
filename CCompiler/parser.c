@@ -35,6 +35,7 @@ int parser(char fileNamePar[])
 	
 		fclose(FileTemp);
 		printf("Compilation finished with %d errors.\n", numberOfErrors);
+		system(" nasm -f elf assembly.asm && gcc -m32 -o assembly assembly.o ");
 	}
 
 	return 0;

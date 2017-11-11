@@ -12,3 +12,9 @@ int verifyIfCodeNeeded(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord
 void getLiteralResult(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord* dataType, int operand1, int operand2);
 void pushNewSemanticRecordDO(int literalType, DO_Data *op, char* value);
 void generateCode(char *instruction);
+void initializeOutputFile(void);
+void process_assign(void);
+void start_function(void);
+void end_function(void);
+
+FILE *assembly;
