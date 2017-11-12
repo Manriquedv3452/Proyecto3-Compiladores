@@ -59,10 +59,13 @@ char* actualFunction;
 
 primary_expression
 	: IDENTIFIER			{ 
+						
 						if(nextToken == IDENTIFIER)
 							process_id(); 
 						else if (nextToken == '(')
 							process_function(); 
+						else if (nextToken == '=' || 275 <= nextToken <= 284)
+							verify_id_for_Assign();
 					}		
 	| constant
 	| string
@@ -268,24 +271,24 @@ conditional_expression
 
 assignment_expression
 	: conditional_expression
-	| unary_expression  assignment_operator assignment_expression
+	| unary_expression assignment_operator assignment_expression {process_assign();}
 	//| error assignment_operator assignment_expression			    	{ yyerrok; }//err
 //	| unary_expression error assignment_expression				    	{ yyerrok; }//err
 //	| unary_expression assignment_operator error 				    	{ yyerrok; }//err*/
 	;
 
 assignment_operator
-	: '='
-	| MUL_ASSIGN
-	| DIV_ASSIGN
-	| MOD_ASSIGN
-	| ADD_ASSIGN
-	| SUB_ASSIGN
-	| LEFT_ASSIGN
-	| RIGHT_ASSIGN
-	| AND_ASSIGN
-	| XOR_ASSIGN
-	| OR_ASSIGN
+	: '=' {save_assign();}
+	| MUL_ASSIGN {save_assign();}
+	| DIV_ASSIGN {save_assign();}
+	| MOD_ASSIGN {save_assign();}
+	| ADD_ASSIGN {save_assign();}
+	| SUB_ASSIGN {save_assign();}
+	| LEFT_ASSIGN {save_assign();}
+	| RIGHT_ASSIGN {save_assign();}
+	| AND_ASSIGN {save_assign();}
+	| XOR_ASSIGN {save_assign();}
+	| OR_ASSIGN {save_assign();}
 	;
 
 expression
@@ -333,7 +336,7 @@ init_declarator_list
 	;
 
 init_declarator
-	: declarator '=' initializer				{ process_assign(); }
+	: declarator '=' { save_assign(); } initializer				{ process_assign(); }
 	| declarator
 	| declarator error 					{ 
 					if(yychar == IDENTIFIER || yychar == I_CONSTANT || yychar == F_CONSTANT)
@@ -650,10 +653,11 @@ statement
 labeled_statement
 	: IDENTIFIER ':' statement
 	| CASE constant_expression { begin_case(); } ':' statement { /*end_case();*/}
-	| DEFAULT { create_default(); } ':' statement { append_exit(); }
+	| DEFAULT { create_default(); } ':' statement { append_exit(); }	
 
 	| IDENTIFIER ':' error						{ yyerrok; }
-	//| CASE error ':' statement					{ yyerrok; }
+	| CASE error   statement					{ yyerrok; }
+	| DEFAULT error statement					{ yyerrok; }
 	//| CASE constant_expression ':' error				{ yyerrok; }
 	//| DEFAULT ':' error						{ yyerrok; }
 	;

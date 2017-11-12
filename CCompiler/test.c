@@ -1,16 +1,23 @@
-int r = 5, v = 2;
+int r = 0, v = 0;
 
 int main()
 {
-	
-	
-		int i = v + i;
-		//r = i;
-		//i = v;
-		f();
-		int a = i + 7 + 7 + 0+2;
 
-		int var2;
+		
+			int a = 5;
+			int v =  a + 5;
+			
+			
+		switch(v)
+		{
+			case 1:
+				switch(a)
+				{
+					case 2:
+						a++;
+				}
+		}
+
 		//int var1;
 		//int var3 = var1 + var2;
 		//int y = i < var3;
@@ -18,5 +25,6 @@ int main()
 		//printf("%d\n", v);
 	
 }
+
 
 

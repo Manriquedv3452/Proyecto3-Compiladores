@@ -1,17 +1,58 @@
-int main ()
+#include <stdio.h>
+#include <stdlib.h>
+#include "semanticStackStructs.h"
+
+
+void process_literal()
+{
+	SemanticRecord *RS;
+	
+	DO_Datos* c;
+	RS = createSemanticRecord(DATAOBJECT);
+	c = (DO_Datos*)RS -> dataBlock;
+	c -> type = LITERAL;
+	c -> token = "20";
+
+	RS -> dataBlock = c;
+	
+	push(RS);
+}
+
+
+int main (int argc, char *argv[])
 {	
-	int x = 5;  
-	switch(x){ 
 
-		case 2:
-			x = 1;
+	//int a, b, c = 4;
+	initializeList();
+	//process_literal();
+	SemanticRecord *RS;
 
-		case 10:
-			x = 2;
+	//push(RS);
 
-		default:
-			x = 10;
-	}
+	RS = createSemanticRecord(LITERAL);
+	RS -> currentToken = "LITERAL";
+
+	push(RS);
+
+	RS = createSemanticRecord(ERROR);
+	RS -> currentToken = "ERROR";	
+
+	push(RS);
+	
+	//RS = retrieve(DATAOBJECT);
+	//DO_Datos* c = (DO_Datos*) RS ->dataBlock;
+	//printf("%s\n", c -> token);
+	printList();
+
+	pop();
+	
+	printList();
+	//printf("%d\n", head -> next -> kind);
+	//RS = RETRIEVE("3333");
+
+	//printf("%d\n", a);
+
 	return 0;
 }
+
 

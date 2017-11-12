@@ -33,8 +33,6 @@ typedef struct
 } DO_Data;
 
 
-
-
 typedef struct semanticRecord
 {
 	struct semanticRecord *next;
@@ -59,6 +57,7 @@ typedef struct
 	int labelIndex;
 
 } SWITCH_Data;
+
 
 void initializeList(void);
 SemanticRecord* createSemanticRecord(enum dataKind type);
@@ -99,19 +98,14 @@ SemanticRecord* createSemanticRecord(enum dataKind type)
 	RS -> kind = type;
 
 	if (type == DATAOBJECT)
-	{
 		RS -> dataBlock = (DO_Data*) malloc(sizeof(DO_Data));
-	}
-	else if (type == DATASWITCH)
-	{
-		RS -> dataBlock = (SWITCH_Data*) malloc(sizeof(SWITCH_Data));
-	}
-	else
-	{
-		RS -> dataBlock =  malloc(sizeof(DO_Data));
-	}
-
 	
+	else if(type == DATASWITCH)
+		RS -> dataBlock = (SWITCH_Data*) malloc(sizeof(SWITCH_Data));
+
+	else
+		RS -> dataBlock =  malloc(sizeof(DO_Data));
+
 	return RS;
 }
 
