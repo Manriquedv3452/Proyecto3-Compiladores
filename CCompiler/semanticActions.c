@@ -15,6 +15,140 @@ int tempNumber = 0;
 
 FILE *assembly;
 
+void start_switch(void){
+	//create record
+	SWITCH_Data *data; 
+	SemanticRecord *RS;
+	RS = createSemanticRecord(DATASWITCH);
+	data = (SWITCH_Data*) RS -> dataBlock;
+	data -> labelIndex = 0;
+
+	char* token = strdup(yytext);
+	strcpy(RS -> currentToken, token);
+	RS -> line = yylineno;
+	RS -> column = previousColumn;
+	RS -> cursorPosi = cursorPos;
+
+	//save 
+	char instruction[500];
+	char tempName[100];
+
+	sprintf(tempName, "exit%d", tempNumber);
+	strcpy(data -> exitLabel, tempName);
+
+	sprintf(tempName, "selector%d", tempNumber);
+	strcpy(data -> enterLabel, tempName);
+
+	tempNumber++;
+	pushRecord(RS);
+
+	//asm
+	sprintf(instruction, "\njmp %s", tempName);
+	generateCode(instruction);
+	return;
+}
+
+void save_comparator(void){
+	SWITCH_Data *data; 
+	SemanticRecord *RS = retrieveRecord(DATASWITCH);
+	data = (SWITCH_Data*) RS -> dataBlock;
+	
+	SemanticRecord *comp = getTopRecord();
+
+	data -> comparator = comp;
+	printList();
+	return;
+}
+
+void end_switch(void){
+	SWITCH_Data *data; 
+	SemanticRecord *RS = retrieveRecord(DATASWITCH);
+	data = (SWITCH_Data*) RS -> dataBlock;
+	char instruction[500];
+	char tempName[100];
+
+	//selector: 
+	sprintf(tempName, "\n\n%s:", data -> enterLabel);
+	generateCode(tempName);
+
+	//register
+	sprintf(tempName, "mov eax, [esp + %d]\n", data -> comparator -> stackPos);
+	generateCode(tempName);
+
+	for(int i = 0; i < data -> labelIndex; i++){
+		if(strstr(data -> labels[i], "default") != NULL){
+			sprintf(tempName, "jmp %s \n", data -> labels[i]);
+			generateCode(tempName);
+			break;
+		}
+		sprintf(tempName, "cmp eax, %s", data -> cases[i]);
+		generateCode(tempName);
+		sprintf(tempName, "je %s \n", data -> labels[i]);
+		generateCode(tempName);
+	}
+
+	//exit
+	sprintf(tempName, "%s:", data -> exitLabel);
+	generateCode(tempName);
+
+}
+
+void create_selector(void){
+	//char* token = strdup(yytext);
+	//printf("Switch: %s\n", token);
+}
+
+void begin_case(void){
+	SWITCH_Data *data; 
+	SemanticRecord *RS = retrieveRecord(DATASWITCH);
+	data = (SWITCH_Data*) RS -> dataBlock;
+	SemanticRecord *constant = getTopRecord();
+
+
+	//save label name	
+	char instruction[500];
+	char tempName[100];
+	sprintf(tempName, "label%d", tempNumber);
+	tempNumber++;
+	strcpy(data -> cases[data->labelIndex], constant -> currentToken);
+	strcpy(data -> labels[data->labelIndex++], tempName);
+
+	//asm
+	sprintf(instruction, "\n%s:", tempName);
+	generateCode(instruction);
+	return;
+}
+
+void create_default(void){
+	SWITCH_Data *data; 
+	SemanticRecord *RS = retrieveRecord(DATASWITCH);
+	data = (SWITCH_Data*) RS -> dataBlock;
+
+	char instruction[500];
+	char tempName[100];
+	sprintf(tempName, "default%d", tempNumber);
+	tempNumber++;
+
+	//save default
+	strcpy(data -> labels[data->labelIndex++], tempName);
+
+	//asm
+	sprintf(instruction, "\n%s:", tempName);
+	generateCode(instruction); 
+	return;
+}
+
+void append_exit(void){
+	SWITCH_Data *data; 
+	SemanticRecord *RS = retrieveRecord(DATASWITCH);
+	data = (SWITCH_Data*) RS -> dataBlock;
+
+	char instruction[500];
+	sprintf(instruction, "jmp %s", data -> exitLabel);
+	generateCode(instruction);
+}
+
+
 void save_type(void)
 {
 	SemanticRecord *RS;
@@ -47,7 +181,7 @@ void save_id(void)
 			RS -> column = previousColumn;
 			RS -> cursorPosi = cursorPos;
 			RS -> stackPos = stackPos;
-			
+		
 			stackPos += 4;
 
 			pushRecord(RS);

@@ -13,7 +13,8 @@ enum dataKind
 	TEMP = 605, 		//DO DATATYPE
 	NAME = 606,		//DO DATATYPE
 	ID = 607,		//DO DATATYPE
-	FUNCTION = 608
+	FUNCTION = 608,
+	DATASWITCH = 609
 };
 
 
@@ -31,11 +32,6 @@ typedef struct
 	
 } DO_Data;
 
-typedef struct
-{
-	char enterLabel[100];
-	char exitLabel[100];
-} SWITCH_Data;
 
 
 
@@ -52,7 +48,17 @@ typedef struct semanticRecord
 } SemanticRecord;
 
 
+typedef struct
+{
+	char enterLabel[100];
+	char exitLabel[100];
+	SemanticRecord *comparator;
 
+	char cases[100][100];
+	char labels[100][100];
+	int labelIndex;
+
+} SWITCH_Data;
 
 void initializeList(void);
 SemanticRecord* createSemanticRecord(enum dataKind type);
@@ -94,10 +100,18 @@ SemanticRecord* createSemanticRecord(enum dataKind type)
 
 	if (type == DATAOBJECT)
 	{
-
 		RS -> dataBlock = (DO_Data*) malloc(sizeof(DO_Data));
 	}
-	RS -> dataBlock =  malloc(sizeof(DO_Data));
+	else if (type == DATASWITCH)
+	{
+		RS -> dataBlock = (SWITCH_Data*) malloc(sizeof(SWITCH_Data));
+	}
+	else
+	{
+		RS -> dataBlock =  malloc(sizeof(DO_Data));
+	}
+
+	
 	return RS;
 }
 

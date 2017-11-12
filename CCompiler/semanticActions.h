@@ -19,4 +19,13 @@ void end_function(void);
 void process_function(void);
 void call_functionNoParams(void);
 
+
+void start_switch(void);
+void end_switch(void);
+void create_selector(void);
+void begin_case(void);
+void create_default(void);
+void append_exit(void);
+void save_comparator(void);
+
 FILE *assembly;

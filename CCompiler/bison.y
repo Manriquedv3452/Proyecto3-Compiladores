@@ -649,13 +649,13 @@ statement
 
 labeled_statement
 	: IDENTIFIER ':' statement
-	| CASE constant_expression ':' statement
-	| DEFAULT ':' statement
+	| CASE constant_expression { begin_case(); } ':' statement { /*end_case();*/}
+	| DEFAULT { create_default(); } ':' statement { append_exit(); }
 
 	| IDENTIFIER ':' error						{ yyerrok; }
-	| CASE error ':' statement					{ yyerrok; }
-	| CASE constant_expression ':' error				{ yyerrok; }
-	| DEFAULT ':' error						{ yyerrok; }
+	//| CASE error ':' statement					{ yyerrok; }
+	//| CASE constant_expression ':' error				{ yyerrok; }
+	//| DEFAULT ':' error						{ yyerrok; }
 	;
 
 compound_statement
@@ -684,7 +684,7 @@ expression_statement
 selection_statement
 	: IF '(' expression ')' statement ELSE statement
 	| IF '(' expression ')' statement
-	| SWITCH { /*start_switch()*/ } '(' expression ')' {/*Selector*/} statement { /*end_switch*/ }
+	| SWITCH { start_switch(); } '(' expression ')' { save_comparator(); } statement { end_switch(); }
 
 	//| IF '(' error ')' statement ELSE statement							{ yyerrok; }
 	| IF error expression 										{ yyerrok; }

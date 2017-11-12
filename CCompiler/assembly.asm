@@ -14,34 +14,34 @@
 	mov [esp + %1], bx
 	%endmacro
 
-assignConstant 4, 5 ;r = 5
-
-assignConstant 8, 2 ;v = 2
-
 global main
 main:
 
-addIDs 8, 12 ;v + i
-mov [esp + 16], ebx ;temp0 = v + i
+assignConstant 4, 5 ;x = 5
 
-assignID 12, 16 ;i = temp0
 
-call f
+jmp selector0
 
-addIDs 12, 0 ;i + 7
-mov [esp + 20], ebx ;temp0 = i + 7
+label1:
 
-addIDs 20, 0 ;temp0 + 7
-mov [esp + 20], ebx ;temp0 = temp0 + 7
+label2:
 
-addIDs 20, 0 ;temp0 + 0
-mov [esp + 20], ebx ;temp0 = temp0 + 0
+default3:
+jmp exit0
 
-addIDs 20, 0 ;temp0 + 2
-mov [esp + 20], ebx ;temp0 = temp0 + 2
 
-assignID 16, 20 ;a = temp0
+selector0:
+mov eax, [esp + 4]
 
+cmp eax, 2
+je label1 
+
+cmp eax, 10
+je label2 
+
+jmp default3 
+
+exit0:
 
 ret
 
