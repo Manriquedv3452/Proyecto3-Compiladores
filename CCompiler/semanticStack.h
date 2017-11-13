@@ -21,7 +21,11 @@ enum dataKind
 typedef struct 
 {
 	enum dataKind type;
-	int literalType;
+	union
+	{
+		int literalType;
+		int varType;
+	};
 	union
 	{
 		char varName[MAX_VALUE_SIZE];

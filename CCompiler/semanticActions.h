@@ -19,7 +19,7 @@ void start_function(void);
 void end_function(void);
 void process_function(void);
 void call_functionNoParams(void);
-void save_assign(void);
+void save_op(void);
 void verify_id_for_Assign(void);
 void complexAssign(int assignType, DO_Data* temp);
 void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* dataType);

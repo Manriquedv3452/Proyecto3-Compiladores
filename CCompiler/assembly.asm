@@ -86,24 +86,43 @@
 	mov eax, edx
 %endmacro
 
-assignConstant 4, 0 ;r = 0
+assignConstant 4, 0 	;r = 0
 
-assignConstant 8, 0 ;v = 0
+assignConstant 8, 0 	;v = 0
 
 global main
 main:
 
-assignID 8, 0 ;v = xŸaý~
+mov eax, [esp + 4]
 
-assignConstant 12, 0 ;initialize constant 'l' with 0
+cmp eax, 5
+jg compL0 	;compare r with 5, jmp if false
+mov eax, 1
+jmp exitComp0
 
-ret
+compL0:
+	mov eax, 0
 
-global f
-f:
+exitComp0:
+mov [esp + 12], ax 	;temp0 = r op 5
 
-assignID 4, 0 ;r = p!-
+mov eax, [esp + 12] 	;temp0 
+mov ebx, [esp + 8] 	;v
 
+cmp eax, ebx
+jge compL1 	;compare temp0 with v, jmp if false
+mov eax, 1
+jmp exitComp1
+
+compL1:
+	mov eax, 0
+
+exitComp1:
+mov [esp + 12], ax 	;temp0 = temp0 op v
+
+assignID 8, 12  	;v = temp0
+
+assignConstant 16, 0 	;initialize constant 'l' with 0
 
 ret
 

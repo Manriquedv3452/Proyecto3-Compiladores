@@ -32,7 +32,6 @@ extern int previousTokenCode;
 #define YYERROR_VERBOSE 1
 
 int errorFound = FALSE;
-int isDeclaration = FALSE;
 int inContext = FALSE;
 int unDecleared = FALSE;
 char* actualFunction;
@@ -120,8 +119,8 @@ postfix_expression
 	| postfix_expression '(' argument_expression_list ')' 	
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression PTR_OP IDENTIFIER
-	| postfix_expression INC_OP { save_assign(); eval_unary(); }
-	| postfix_expression DEC_OP { save_assign(); eval_unary(); }
+	| postfix_expression INC_OP { save_op(); eval_unary(); }
+	| postfix_expression DEC_OP { save_op(); eval_unary(); }
 	| '(' type_name ')' '{' initializer_list '}'
 	| '(' type_name ')' '{' initializer_list ',' '}'
 
@@ -153,8 +152,8 @@ argument_expression_list
 
 unary_expression
 	: postfix_expression
-	| INC_OP { save_assign(); } unary_expression						{ eval_unary(); }
-	| DEC_OP { save_assign(); } unary_expression						{ eval_unary(); }
+	| INC_OP { save_op(); } unary_expression						{ eval_unary(); }
+	| DEC_OP { save_op(); } unary_expression						{ eval_unary(); }
 	| unary_operator cast_expression
 	| SIZEOF unary_expression
 	| SIZEOF '(' type_name ')'
@@ -214,10 +213,10 @@ shift_expression
 
 relational_expression
 	: shift_expression
-	| relational_expression '<' shift_expression
-	| relational_expression '>' shift_expression
-	| relational_expression LE_OP shift_expression
-	| relational_expression GE_OP shift_expression
+	| relational_expression '<' { save_op(); } shift_expression		{ eval_binary(); }
+	| relational_expression '>' { save_op(); } shift_expression		{ eval_binary(); }	
+	| relational_expression LE_OP { save_op(); } shift_expression		{ eval_binary(); }
+	| relational_expression GE_OP { save_op(); } shift_expression		{ eval_binary(); }
 
 	| relational_expression error shift_expression
 
@@ -280,17 +279,17 @@ assignment_expression
 	;
 
 assignment_operator
-	: '=' {save_assign();}
-	| MUL_ASSIGN {save_assign();}
-	| DIV_ASSIGN {save_assign();}
-	| MOD_ASSIGN {save_assign();}
-	| ADD_ASSIGN {save_assign();}
-	| SUB_ASSIGN {save_assign();}
-	| LEFT_ASSIGN {save_assign();}
-	| RIGHT_ASSIGN {save_assign();}
-	| AND_ASSIGN {save_assign();}
-	| XOR_ASSIGN {save_assign();}
-	| OR_ASSIGN {save_assign();}
+	: '=' {save_op();}
+	| MUL_ASSIGN {save_op();}
+	| DIV_ASSIGN {save_op();}
+	| MOD_ASSIGN {save_op();}
+	| ADD_ASSIGN {save_op();}
+	| SUB_ASSIGN {save_op();}
+	| LEFT_ASSIGN {save_op();}
+	| RIGHT_ASSIGN {save_op();}
+	| AND_ASSIGN {save_op();}
+	| XOR_ASSIGN {save_op();}
+	| OR_ASSIGN {save_op();}
 	;
 
 expression
@@ -307,7 +306,7 @@ constant_expression
 
 declaration
 	: declaration_specifiers  ';'				{ declaration_end(); }
-	| declaration_specifiers  init_declarator_list ';'   { declaration_end(); isDeclaration = FALSE; }	
+	| declaration_specifiers  init_declarator_list ';'   { declaration_end(); }	
 	| static_assert_declaration
 	//| declaration_specifiers init_declarator_list error		{ yyerrok; }
 	//| declaration_specifiers error ';'			    { yyerrok;  }//err*/
@@ -338,7 +337,7 @@ init_declarator_list
 	;
 
 init_declarator
-	: declarator '=' { save_assign(); } initializer				{ process_assign(); }
+	: declarator '=' { save_op(); } initializer				{ process_assign(); }
 	| declarator { initializeID(); }
 	| declarator error 					{ 
 					if(yychar == IDENTIFIER || yychar == I_CONSTANT || yychar == F_CONSTANT)
@@ -713,28 +712,28 @@ iteration_statement
 	
 
 
-	| WHILE '(' error ')' statement									{ yyerrok; }
-	| WHILE '(' expression ')' error								{ yyerrok; }
+	//| WHILE '(' error ')' statement									{ yyerrok; }
+	//| WHILE '(' expression ')' error								{ yyerrok; }
 	| WHILE '(' expression error statement								{ yyerrok; }
 	| WHILE error expression ')' statement								{ yyerrok; }
 
-	| DO error WHILE '(' expression ')' ';'								{ yyerrok; }
-	| DO statement WHILE '(' error ')' ';'								{ yyerrok; }
+	//| DO error WHILE '(' expression ')' ';'								{ yyerrok; }
+	//| DO statement WHILE '(' error ')' ';'								{ yyerrok; }
 	| DO statement WHILE '(' expression ')' error							{ yyerrok; }
 	| DO statement WHILE '(' expression error ';'							{ yyerrok; }
 	| DO statement WHILE error expression ')' ';'							{ yyerrok; }
 
-	| FOR '(' error expression_statement ')' statement						{ yyerrok; }	    
+	//| FOR '(' error expression_statement ')' statement						{ yyerrok; }	    
 	//| FOR '(' error expression_statement expression ')' statement					{ yyerrok; }		    
-	| FOR '(' expression_statement error expression ')' statement					{ yyerrok; }		    
-	| FOR '(' expression_statement expression_statement error ')' statement				{ yyerrok; }
-	| FOR '(' expression_statement expression_statement expression ')' error			{ yyerrok; }	    
+	//| FOR '(' expression_statement error expression ')' statement					{ yyerrok; }		    
+	//| FOR '(' expression_statement expression_statement error ')' statement				{ yyerrok; }
+	//| FOR '(' expression_statement expression_statement expression ')' error			{ yyerrok; }	    
 
-	| FOR '(' expression_statement error ')' statement						{ yyerrok; }    
-	| FOR '(' declaration error expression ')' statement						{ yyerrok; }	 
-	| FOR '(' expression_statement expression_statement error statement   				{ yyerrok; }
-	| FOR '(' declaration expression_statement error ')' statement					{ yyerrok; }
-	| FOR '(' declaration expression_statement expression ')' error					{ yyerrok; }	
+	//| FOR '(' expression_statement error ')' statement						{ yyerrok; }    
+	//| FOR '(' declaration error expression ')' statement						{ yyerrok; }	 
+	//| FOR '(' expression_statement expression_statement error statement   				{ yyerrok; }
+	//| FOR '(' declaration expression_statement error ')' statement					{ yyerrok; }
+	//| FOR '(' declaration expression_statement expression ')' error					{ yyerrok; }	
 	| FOR '(' declaration expression_statement expression error statement		    		{ yyerrok; }
 	| FOR error declaration expression_statement expression ')' statement				{ yyerrok; }
 	;		

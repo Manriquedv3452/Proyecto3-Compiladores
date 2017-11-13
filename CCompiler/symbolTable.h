@@ -10,7 +10,7 @@ typedef struct symbolTable
 	char varName[MAX_VALUE_SIZE];		//MAX_VALUE_SIZE DEFINE IN SEMANTICSTACK.H
 	int line, column, cursorPosi;
 	int stackPos;
-	int varType;
+	int symbolKind, symbolType;			//varType = ID, FUNCTION, ETC - SymbolKind = FUNCTION, ID, ETC
 
 } SymbolTable;
 
@@ -32,7 +32,7 @@ TableStack *tailTableStack = NULL;
 void initializeTable(void);
 void pushTable(void);
 void popTable(void);
-void pushSymbol(char varName[], int line, int column, int cursorPosi, int varType, int stackPos);
+void pushSymbol(char varName[], int line, int column, int cursorPosi, int symbolType, int symbolKind,int stackPos);
 void popSymbol(void);
 void clearSymbols(void);
 SymbolTable* look_up_TS_ID(char* id);
@@ -96,7 +96,7 @@ void popTable(void)
 	
 }
 
-void pushSymbol(char varName[], int line, int column, int cursorPosi, int varType, int stackPos)
+void pushSymbol(char varName[], int line, int column, int cursorPosi, int symbolType, int symbolKind,int stackPos)
 {
 		
 	SymbolTable* temp = (SymbolTable*) malloc(sizeof(SymbolTable));
@@ -117,7 +117,8 @@ void pushSymbol(char varName[], int line, int column, int cursorPosi, int varTyp
 	headSymbol -> next -> line = line;
 	headSymbol -> next -> column = column;
 	headSymbol -> next -> cursorPosi = cursorPosi;
-	headSymbol -> next -> varType = varType;
+	headSymbol -> next -> symbolType = symbolType;
+	headSymbol -> next -> symbolKind = symbolKind;
 	headSymbol -> next -> stackPos = stackPos;
 
 	free(temp);
@@ -133,7 +134,7 @@ void popSymbol(void)
 
 	SymbolTable* temp = headSymbol -> next;
 
-	if (headSymbol -> next -> varType != FUNCTION)
+	if (headSymbol -> next -> symbolType != FUNCTION)
 		stackPos -= 4;
 
 
@@ -175,7 +176,7 @@ SymbolTable* look_up_TS_ID(char* id)
 
 		while (currentSymbol -> next != tailSymbol)
 		{
-			if (strcmp(currentSymbol -> next -> varName, id) == 0 && currentSymbol -> next -> varType != ERROR && currentSymbol -> next -> varType != FUNCTION)
+			if (strcmp(currentSymbol -> next -> varName, id) == 0 && currentSymbol -> next -> symbolKind != ERROR && currentSymbol -> next -> symbolKind != FUNCTION)
 			{
 				return currentSymbol -> next;
 			}
@@ -210,7 +211,7 @@ int look_up_error_TS_ID(char* id)
 
 		while (currentSymbol -> next != tailSymbol)
 		{
-			if (strcmp(currentSymbol -> next -> varName, id) == 0 && currentSymbol -> next -> varType == ERROR)
+			if (strcmp(currentSymbol -> next -> varName, id) == 0 && currentSymbol -> next -> symbolKind == ERROR)
 			{
 				return 1;
 			}
@@ -238,7 +239,7 @@ int look_up_top_pos(char* id)
 		currentSymbol = headSymbol;
 		while (currentSymbol -> next != tailSymbol)
 		{
-			if (strcmp(currentSymbol -> next -> varName, id) == 0 && currentSymbol -> next -> varType != ERROR)
+			if (strcmp(currentSymbol -> next -> varName, id) == 0 && currentSymbol -> next -> symbolKind != ERROR)
 			{
 				return pos;
 			}
@@ -288,7 +289,7 @@ SymbolTable* look_up_TS_function(char* id)
 
 		while (currentSymbol -> next != tailSymbol)
 		{
-			if (strcmp(currentSymbol -> next -> varName, id) == 0 && currentSymbol -> next -> varType != ERROR && currentSymbol -> next -> varType != ID)
+			if (strcmp(currentSymbol -> next -> varName, id) == 0 && currentSymbol -> next -> symbolKind != ERROR && currentSymbol -> next -> symbolKind != ID)
 			{
 				return currentSymbol -> next;
 			}
