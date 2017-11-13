@@ -228,9 +228,9 @@ relational_expression
 
 equality_expression
 	: relational_expression
-	| equality_expression EQ_OP relational_expression
-	| equality_expression NE_OP relational_expression
-	| equality_expression NE_OP error				{ yyerrok; }
+	| equality_expression EQ_OP { save_op(); } relational_expression	{ eval_binary(); }
+	| equality_expression NE_OP { save_op(); } relational_expression	{ eval_binary(); }
+	//| equality_expression NE_OP error				{ yyerrok; }
 	| equality_expression error relational_expression		{ yyerrok; }
 	;
 

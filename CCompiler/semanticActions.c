@@ -564,7 +564,10 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 		{
 			sprintf(instruction, "mov eax, [esp + %d]", op1 -> stackPos);
 			generateCode(instruction);
-			sprintf(instruction, "\ncmp eax, %s\njge compL%d \t;compare %s with %s, jmp if false", op2 -> value, compareLabel, op1 -> value, op2 -> value);
+
+			sprintf(instruction, "\ncmp eax, %s\njge compL%d \t;compare %s < %s, jmp if false", 
+					op2 -> value, compareLabel, op1 -> value, op2 -> value);
+
 			generateCode(instruction);
 			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
 			generateCode(instruction);
@@ -576,8 +579,11 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 		{	
 			sprintf(instruction, "mov eax, [esp + %d]", op1 -> stackPos);
 			generateCode(instruction);
-			sprintf(instruction, "\ncmp eax, %s\njbe compL%d \t;compare %s with %s, jmp if false", op2 -> value, compareLabel, op1 -> value, op2 -> value);
+
+			sprintf(instruction, "\ncmp eax, %s\njbe compL%d \t;compare %s > %s, jmp if false", 
+					op2 -> value, compareLabel, op1 -> value, op2 -> value);
 			generateCode(instruction);
+
 			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
 			generateCode(instruction);
 			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
@@ -587,8 +593,11 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 		{
 			sprintf(instruction, "mov eax, [esp + %d]", op1 -> stackPos);
 			generateCode(instruction);
-			sprintf(instruction, "\ncmp eax, %s\njb compL%d \t;compare %s with %s, jmp if false", op2 -> value, compareLabel, op1 -> value, op2 -> value);
+
+			sprintf(instruction, "\ncmp eax, %s\njb compL%d \t;compare %s >= %s, jmp if false", 
+					op2 -> value, compareLabel, op1 -> value, op2 -> value);
 			generateCode(instruction);
+
 			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
 			generateCode(instruction);
 			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
@@ -598,14 +607,46 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 		{
 			sprintf(instruction, "mov eax, [esp + %d]", op1 -> stackPos);
 			generateCode(instruction);
-			sprintf(instruction, "\ncmp eax, %s\njg compL%d \t;compare %s with %s, jmp if false", op2 -> value, compareLabel, op1 -> value, op2 -> value);
+
+			sprintf(instruction, "\ncmp eax, %s\njg compL%d \t;compare %s <= %s, jmp if false", 
+				op2 -> value, compareLabel, op1 -> value, op2 -> value);
 			generateCode(instruction);
+
+			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == EQ_OP)
+		{
+			sprintf(instruction, "mov eax, [esp + %d]", op1 -> stackPos);
+			generateCode(instruction);
+
+			sprintf(instruction, "\ncmp eax, %s\nje compL%d \t;compare %s == %s, jmp if false", 
+				op2 -> value, compareLabel, op1 -> value, op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == NE_OP)
+		{
+			sprintf(instruction, "mov eax, [esp + %d]", op1 -> stackPos);
+			generateCode(instruction);
+
+			sprintf(instruction, "\ncmp eax, %s\njne compL%d \t;compare %s != %s, jmp if false", 
+				op2 -> value, compareLabel, op1 -> value, op2 -> value);
+			generateCode(instruction);
+
 			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
 			generateCode(instruction);
 			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
 			compareLabel++;
 		}
 	}
+
 	else if (op1 -> type == LITERAL && op2 -> type == ID)
 	{
 		
@@ -633,7 +674,10 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 		{
 			sprintf(instruction, "mov eax, [esp + %d] \t;%s", op2 -> stackPos, op2 -> varName);
 			generateCode(instruction);
-			sprintf(instruction, "\ncmp eax, %s\njge compL%d \t;compare %s with %s, jmp if false", op1 -> value, compareLabel, op1 -> value, op2 -> value);
+
+			sprintf(instruction, "\ncmp eax, %s\njge compL%d \t;compare %s < %s, jmp if false", 
+						op1 -> value, compareLabel, op1 -> value, op2 -> value);
+
 			generateCode(instruction);
 			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
 			generateCode(instruction);
@@ -645,7 +689,10 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 		{	
 			sprintf(instruction, "mov eax, [esp + %d] \t;%s", op2 -> stackPos, op2 -> varName);
 			generateCode(instruction);
-			sprintf(instruction, "\ncmp eax, %s\njbe compL%d \t;compare %s with %s, jmp if false", op1 -> value, compareLabel, op1 -> value, op2 -> value);
+
+			sprintf(instruction, "\ncmp eax, %s\njbe compL%d \t;compare %s > %s, jmp if false", 
+					op1 -> value, compareLabel, op1 -> value, op2 -> value);
+
 			generateCode(instruction);
 			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
 			generateCode(instruction);
@@ -656,8 +703,11 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 		{
 			sprintf(instruction, "mov eax, [esp + %d] \t;%s", op2 -> stackPos, op2 -> varName);
 			generateCode(instruction);
-			sprintf(instruction, "\ncmp eax, %s\njb compL%d \t;compare %s with %s, jmp if false", op1 -> value, compareLabel, op1 -> value, op2 -> value);
+
+			sprintf(instruction, "\ncmp eax, %s\njb compL%d \t;compare %s >= %s, jmp if false", 
+					op1 -> value, compareLabel, op1 -> value, op2 -> value);
 			generateCode(instruction);
+
 			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
 			generateCode(instruction);
 			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
@@ -667,8 +717,39 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 		{
 			sprintf(instruction, "mov eax, [esp + %d] \t;%s", op2 -> stackPos, op2 -> varName);
 			generateCode(instruction);
-			sprintf(instruction, "\ncmp eax, %s\njg compL%d \t;compare %s with %s, jmp if false", op1 -> value, compareLabel, op1 -> value, op2 -> value);
+
+			sprintf(instruction, "\ncmp eax, %s\njg compL%d \t;compare %s <= %s, jmp if false", 
+					op1 -> value, compareLabel, op1 -> value, op2 -> value);
 			generateCode(instruction);
+
+			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == EQ_OP)
+		{
+			sprintf(instruction, "mov eax, [esp + %d] \t;%s", op2 -> stackPos, op2 -> varName);
+			generateCode(instruction);
+
+			sprintf(instruction, "\ncmp eax, %s\nje compL%d \t;compare %s == %s, jmp if false", 
+						op1 -> value, compareLabel, op1 -> value, op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == NE_OP)
+		{
+			sprintf(instruction, "mov eax, [esp + %d] \t;%s", op2 -> stackPos, op2 -> varName);
+			generateCode(instruction);
+
+			sprintf(instruction, "\ncmp eax, %s\njne compL%d \t;compare %s != %s, jmp if false", 
+						op1 -> value, compareLabel, op1 -> value, op2 -> value);
+			generateCode(instruction);
+
 			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
 			generateCode(instruction);
 			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
@@ -702,8 +783,11 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 			sprintf(instruction, "mov eax, [esp + %d] \t;%s \nmov ebx, [esp + %d] \t;%s", 
 				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
 			generateCode(instruction);
-			sprintf(instruction, "\ncmp eax, ebx\njge compL%d \t;compare %s with %s, jmp if false", compareLabel, op1 -> value, op2 -> value);
+
+			sprintf(instruction, "\ncmp eax, ebx\njge compL%d \t;compare %s < %s, jmp if false", 
+					compareLabel, op1 -> value, op2 -> value);
 			generateCode(instruction);
+
 			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
 			generateCode(instruction);
 			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
@@ -716,7 +800,7 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
 			generateCode(instruction);
 
-			sprintf(instruction, "\ncmp eax, ebx\njbe compL%d \t;compare %s with %s, jmp if false", 
+			sprintf(instruction, "\ncmp eax, ebx\njbe compL%d \t;compare %s > %s, jmp if false", 
 					compareLabel, op1 -> value, op2 -> value);
 			generateCode(instruction);
 
@@ -731,7 +815,7 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
 			generateCode(instruction);
 
-			sprintf(instruction, "\ncmp eax, ebx\njb compL%d \t;compare %s with %s, jmp if false", 
+			sprintf(instruction, "\ncmp eax, ebx\njb compL%d \t;compare %s >= %s, jmp if false", 
 				compareLabel, op1 -> value, op2 -> value);
 			generateCode(instruction);
 
@@ -746,7 +830,38 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
 			generateCode(instruction);
 
-			sprintf(instruction, "\ncmp eax, ebx\njg compL%d \t;compare %s with %s, jmp if false", 
+			sprintf(instruction, "\ncmp eax, ebx\njg compL%d \t;compare %s <= %s, jmp if false", 
+				compareLabel, op1 -> value, op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == EQ_OP)
+		{
+			sprintf(instruction, "mov eax, [esp + %d] \t;%s \nmov ebx, [esp + %d] \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\ncmp eax, ebx\nje compL%d \t;compare %s == %s, jmp if false", 
+				compareLabel, op1 -> value, op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "mov eax, 1\njmp exitComp%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		
+		else if (operator == NE_OP)
+		{
+			sprintf(instruction, "mov eax, [esp + %d] \t;%s \nmov ebx, [esp + %d] \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\ncmp eax, ebx\njne compL%d \t;compare %s != %s, jmp if false", 
 				compareLabel, op1 -> value, op2 -> value);
 			generateCode(instruction);
 
@@ -872,7 +987,14 @@ void getLiteralResult(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* 
 		//if (dataType -> type == INT || dataType -> type == CHAR)
 			sprintf(resultBinary, "%d", operand1 <= operand2);
 	}
-
+	else if (operator == EQ_OP)
+	{
+		sprintf(resultBinary, "%d", operand1 == operand2);
+	}
+	else if (operator == NE_OP)
+	{
+		sprintf(resultBinary, "%d", operand1 != operand2);
+	}
 	//total = result;
 }
 
