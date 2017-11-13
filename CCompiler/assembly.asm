@@ -93,36 +93,9 @@ assignConstant 8, 0 	;v = 0
 global main
 main:
 
-mov eax, [esp + 4]
+assignConstant 8, 2 	;v = 2
 
-cmp eax, 5
-jg compL0 	;compare r with 5, jmp if false
-mov eax, 1
-jmp exitComp0
-
-compL0:
-	mov eax, 0
-
-exitComp0:
-mov [esp + 12], ax 	;temp0 = r op 5
-
-mov eax, [esp + 12] 	;temp0 
-mov ebx, [esp + 8] 	;v
-
-cmp eax, ebx
-jge compL1 	;compare temp0 with v, jmp if false
-mov eax, 1
-jmp exitComp1
-
-compL1:
-	mov eax, 0
-
-exitComp1:
-mov [esp + 12], ax 	;temp0 = temp0 op v
-
-assignID 8, 12  	;v = temp0
-
-assignConstant 16, 0 	;initialize constant 'l' with 0
+assignConstant 12, 0 	;initialize constant 'l' with 0
 
 ret
 

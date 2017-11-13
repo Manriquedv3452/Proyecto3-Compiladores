@@ -341,7 +341,6 @@ void eval_binary(void)
 	int operator;
 	SemanticRecord* dataType = retrieveRecord(TYPE);
 	
-	//printList();
 	DO_Data* op2 = (DO_Data*) RS -> dataBlock; popRecordWithoutDataBlock(); RS = getTopRecord();
 	operator = RS -> type; popRecord(); RS = getTopRecord();
 	DO_Data* op1 = (DO_Data*) RS -> dataBlock; popRecordWithoutDataBlock(); 

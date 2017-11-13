@@ -93,8 +93,10 @@ string
 
 generic_selection
 	: GENERIC '(' assignment_expression ',' generic_assoc_list ')'
-	| GENERIC '(' error ',' generic_assoc_list ')'				{ yyerrok; }
-	| GENERIC '(' assignment_expression ',' error ')'			{ yyerrok; }
+	| GENERIC error assignment_expression ',' generic_assoc_list ')'				{ yyerrok; }
+	| GENERIC '(' assignment_expression error generic_assoc_list ')'				{ yyerrok; }
+	| GENERIC error assignment_expression ',' generic_assoc_list error				{ yyerrok; }
+	//| GENERIC '(' assignment_expression ',' error ')'			{ yyerrok; }
 	;	
 
 generic_assoc_list
@@ -146,7 +148,7 @@ argument_expression_list
 	| argument_expression_list ',' assignment_expression
 
 	//| error ',' assignment_expression					{ yyerrok; }
-	| argument_expression_list ',' error					{ yyerrok; }
+	//| argument_expression_list ',' error					{ yyerrok; }
 	| argument_expression_list error assignment_expression			{ yyerrok; }
 	;
 
@@ -183,22 +185,22 @@ cast_expression
 
 multiplicative_expression
 	: cast_expression
-	| multiplicative_expression '*' { process_op(); } cast_expression {  eval_binary(); }
-	| multiplicative_expression '/' { process_op(); } cast_expression {  eval_binary(); }
-	| multiplicative_expression '%' { process_op(); } cast_expression {  eval_binary(); }
-	| multiplicative_expression '*' error			{ yyerrok; }	
-	| multiplicative_expression '/' error			{ yyerrok; }
-	| multiplicative_expression '%' error			{ yyerrok; }
+	| multiplicative_expression '*' { save_op(); } cast_expression {  eval_binary(); }
+	| multiplicative_expression '/' { save_op(); } cast_expression {  eval_binary(); }
+	| multiplicative_expression '%' { save_op(); } cast_expression {  eval_binary(); }
+	//| multiplicative_expression '*' error			{ yyerrok; }	
+	//| multiplicative_expression '/' error			{ yyerrok; }
+	//| multiplicative_expression '%' error			{ yyerrok; }
 	| multiplicative_expression error cast_expression	{ yyerrok; }
 	;
 
 additive_expression
 	: multiplicative_expression
-	| additive_expression '+' { process_op(); } multiplicative_expression { eval_binary(); }
-	| additive_expression '-' { process_op(); } multiplicative_expression { eval_binary(); }
+	| additive_expression '+' { save_op(); } multiplicative_expression { eval_binary(); }
+	| additive_expression '-' { save_op(); } multiplicative_expression { eval_binary(); }
 	//| error '+' multiplicative_expression			{ yyerrok; }    		//err
-	| additive_expression '+' error				{ yyerrok; }
-	| additive_expression '-' error				{ yyerrok; }
+	//| additive_expression '+' error				{ yyerrok; }
+	//| additive_expression '-' error				{ yyerrok; }
 	//| error '-' multiplicative_expression			{ yyerrok; }    		//err*/
 	| additive_expression error multiplicative_expression 	{ yyerrok; }
 	;
@@ -235,13 +237,13 @@ equality_expression
 and_expression
 	: equality_expression
 	| and_expression '&' equality_expression
-	| and_expression '&' error					{ yyerrok; }
+	| and_expression error equality_expression			{ yyerrok; }
 	;
 
 exclusive_or_expression
 	: and_expression
 	| exclusive_or_expression '^' and_expression
-	| exclusive_or_expression '^' error				{ yyerrok; }	
+	| exclusive_or_expression error and_expression			{ yyerrok; }	
 	;
 
 inclusive_or_expression
