@@ -12,6 +12,7 @@
 
 #include "semanticActions.h"
 
+
 void yyerror(const char *);
 void yynote(char *noteInfo, int line, int column, int writeCode, int cursorPosi);
 void yywarning(char *warningInfo, int line, int column, int writeCode, int cursorPosi);
@@ -31,10 +32,11 @@ extern int previousTokenCode;
 #define YYERROR_VERBOSE 1
 
 int errorFound = FALSE;
-int inFunction = FALSE;
+int isDeclaration = FALSE;
 int inContext = FALSE;
 int unDecleared = FALSE;
 char* actualFunction;
+
 
 %}
 %token	IDENTIFIER I_CONSTANT F_CONSTANT STRING_LITERAL FUNC_NAME SIZEOF
@@ -118,8 +120,8 @@ postfix_expression
 	| postfix_expression '(' argument_expression_list ')' 	
 	| postfix_expression '.' IDENTIFIER
 	| postfix_expression PTR_OP IDENTIFIER
-	| postfix_expression INC_OP
-	| postfix_expression DEC_OP
+	| postfix_expression INC_OP { save_assign(); eval_unary(); }
+	| postfix_expression DEC_OP { save_assign(); eval_unary(); }
 	| '(' type_name ')' '{' initializer_list '}'
 	| '(' type_name ')' '{' initializer_list ',' '}'
 
@@ -151,8 +153,8 @@ argument_expression_list
 
 unary_expression
 	: postfix_expression
-	| INC_OP unary_expression
-	| DEC_OP unary_expression
+	| INC_OP { save_assign(); } unary_expression						{ eval_unary(); }
+	| DEC_OP { save_assign(); } unary_expression						{ eval_unary(); }
 	| unary_operator cast_expression
 	| SIZEOF unary_expression
 	| SIZEOF '(' type_name ')'
@@ -206,7 +208,7 @@ shift_expression
 	: additive_expression
 	| shift_expression LEFT_OP additive_expression
 	| shift_expression RIGHT_OP additive_expression
-	| shift_expression RIGHT_OP error			{ yyerrok; }
+	//| shift_expression RIGHT_OP error			{ yyerrok; }
 	| shift_expression error additive_expression		{ yyerrok; }
 	;
 
@@ -219,7 +221,7 @@ relational_expression
 
 	| relational_expression error shift_expression
 
-	| relational_expression '<' error 			{ yyerrok; }		//new
+	//| relational_expression '<' error 			{ yyerrok; }		//new
 	//| error '<' shift_expression				{ yyerrok; }		//new
 	;
 
@@ -305,10 +307,10 @@ constant_expression
 
 declaration
 	: declaration_specifiers  ';'				{ declaration_end(); }
-	| declaration_specifiers  init_declarator_list ';'   { declaration_end(); }	
+	| declaration_specifiers  init_declarator_list ';'   { declaration_end(); isDeclaration = FALSE; }	
 	| static_assert_declaration
 	//| declaration_specifiers init_declarator_list error		{ yyerrok; }
-	| declaration_specifiers error ';'			    { yyerrok;  }//err*/
+	//| declaration_specifiers error ';'			    { yyerrok;  }//err*/
 
 	| declaration_specifiers  init_declarator_list error		{ yyerrok; }
 	//| error init_declarator_list ';'			    	{ yyerrok; }//err
@@ -330,14 +332,14 @@ declaration_specifiers
 	;
 
 init_declarator_list
-	: init_declarator
+	: init_declarator 
 	| init_declarator_list ',' init_declarator
 	| init_declarator_list error 				{ yyerrok; }
 	;
 
 init_declarator
 	: declarator '=' { save_assign(); } initializer				{ process_assign(); }
-	| declarator
+	| declarator { initializeID(); }
 	| declarator error 					{ 
 					if(yychar == IDENTIFIER || yychar == I_CONSTANT || yychar == F_CONSTANT)
 						yyerrok; 
@@ -762,16 +764,16 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator { start_function(); stackPos -= 4; }  declaration_list  { inContext = TRUE; pushTable(); } compound_statement	{ end_function(); unDecleared = FALSE; inContext = FALSE; popTable(); stackPos -= 4; /*temp*/ }
+	: declaration_specifiers declarator { start_function(); stackPos -= 4; }  declaration_list  { inContext = TRUE; pushTable(); } compound_statement	{ end_function(); unDecleared = FALSE; inContext = FALSE; popTable(); stackPos -= 4; }
 
 			
-	| declaration_specifiers declarator  
+	| declaration_specifiers  declarator  
 
 		{ inContext = TRUE;  start_function(); stackPos -= 4; pushTable(); } 
 
 		compound_statement
 	
-		{ end_function(); unDecleared = FALSE; inContext = FALSE; popTable(); stackPos -= 4; /*temp*/}				
+		{ end_function(); unDecleared = FALSE; inContext = FALSE;  popTable(); stackPos -= 4;}				
 	;
 
 declaration_list

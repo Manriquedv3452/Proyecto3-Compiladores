@@ -26,9 +26,9 @@ main:
 	movl	v(%rip), %edx
 	movl	r(%rip), %eax
 	cmpl	%eax, %edx
-	jge	.L2
-	movl	$5, -4(%rbp)
-.L2:
+	setl	%al
+	movzbl	%al, %eax
+	movl	%eax, -4(%rbp)
 	movl	$0, %eax
 	popq	%rbp
 	.cfi_def_cfa 7, 8

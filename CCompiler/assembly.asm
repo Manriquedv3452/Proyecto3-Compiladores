@@ -86,46 +86,23 @@
 	mov eax, edx
 %endmacro
 
+assignConstant 4, 0 ;r = 0
+
+assignConstant 8, 0 ;v = 0
+
 global main
 main:
 
-assignConstant 4, 5 ;x = 5
+assignID 8, 0 ;v = xŸaý~
 
+assignConstant 12, 0 ;initialize constant 'l' with 0
 
-jmp selector0
+ret
 
-label1:
-assignConstant 4, 1 ;x = 1
+global f
+f:
 
-
-label2:
-assignConstant 4, 2 ;x = 2
-
-
-default3:
-assignConstant 4, 10 ;x = 10
-
-jmp exit0
-
-
-selector0:
-mov eax, [esp + 4]
-
-cmp eax, 2
-je label1
-
-cmp eax, 10
-je label2
-
-jmp default3
-
-exit0:
-assignConstant 8, 5 ;c = 5
-
-addConstant 4, 1 ;x + 1
-mov [esp + 12], ax ;temp4 = x op 1
-
-assignID 8, 12 ;c = temp4
+assignID 4, 0 ;r = p!-
 
 
 ret

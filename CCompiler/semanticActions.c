@@ -12,6 +12,11 @@
 
 char resultBinary[MAX_VALUE_SIZE];
 int tempNumber = 0;
+int compareLabel = 0;
+
+int pendingOP = FALSE;
+DO_Data* unaryID;
+int unaryOP;
 
 FILE *assembly;
 
@@ -29,10 +34,21 @@ void save_type(void)
 	//printList();
 }
 
+void initializeID (void)
+{
+	char instruction[100];
+	SemanticRecord* RS = getTopRecord();
+	
+	sprintf(instruction, "assignConstant %d, 0 ;initialize constant '%s' with 0", RS -> stackPos, RS -> currentToken);
+	generateCode(instruction);
+}
+
 void save_id(void)
 {
+	//printSymbols();
 	char* token = strdup(yytext);
 	int pos = search(token);
+	char instruction[100];
 	
 	if (!inContext)
 	{
@@ -68,6 +84,12 @@ void save_id(void)
 			RS -> column = previousColumn;	
 			RS -> cursorPosi = cursorPos;
 			RS -> stackPos = stackPos;
+
+			if (isDeclaration)
+			{
+				sprintf(instruction, "assignConstant %d, 0 ;initialize constant %s with 0", RS -> stackPos, RS -> currentToken);
+				generateCode(instruction);
+			}
 			
 			stackPos += 4;
 	
@@ -95,6 +117,7 @@ void save_id(void)
 		sprintf(note, "note, previous declaration of %s‘%s’%s was here", CWHTN, RS -> currentToken, CWHT);
 		yynote(note, RS -> line, RS -> column, TRUE, RS -> cursorPosi);
 	}
+	
 }
 
 
@@ -114,11 +137,11 @@ void declaration_end(void)
 	{
 		if (RS -> kind == ERROR)
 		{
-			appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, ERROR, 0);
+			pushSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, ERROR, 0);
 		}
 		else
 		{
-			appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, dataType -> type, RS -> stackPos);
+			pushSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, dataType -> type, RS -> stackPos);
 		}
 		popRecord();
 		RS = getTopRecord();
@@ -173,8 +196,10 @@ void save_assign(void)
 	pushRecord(RS);
 }
 
+
 void verify_id_for_Assign(void)
 {
+	
 	SemanticRecord *RS;
 	SymbolTable* symbol;
 	char *id;
@@ -190,12 +215,11 @@ void verify_id_for_Assign(void)
 		
 	int pos = search(id);
 
-	//printf("HOLA\n");
 	if (pos == -1)
 	{
 
+			
 		symbol = look_up_TS_ID(id);
-		
 		if (symbol -> stackPos == -1)
 		{
 			RS -> type = ERROR;
@@ -218,6 +242,7 @@ void verify_id_for_Assign(void)
 	}
 	
 	pushRecord(RS);		
+	
 }
 
 
@@ -268,6 +293,7 @@ void process_id(void)
 			RS -> stackPos = symbol -> stackPos;
 			RS -> type = ID;
 		}
+		free(symbol);
 		
 	}
 	else
@@ -315,11 +341,10 @@ void checkForDeclaredError(char *token, SemanticRecord* R)
 void eval_binary(void)
 {
 	SemanticRecord* RS = getTopRecord();
-	char operator;
+	int operator;
 	SemanticRecord* dataType = retrieveRecord(TYPE);
 	
 	//printList();
-	
 	DO_Data* op2 = (DO_Data*) RS -> dataBlock; popRecordWithoutDataBlock(); RS = getTopRecord();
 	operator = RS -> type; popRecord(); RS = getTopRecord();
 	DO_Data* op1 = (DO_Data*) RS -> dataBlock; popRecordWithoutDataBlock(); 
@@ -379,7 +404,7 @@ void eval_binary(void)
 
 		writeCodeNeeded(op1, operator, op2, dataType);
 
-		sprintf(instruction, "mov [esp + %d], ax ;%s = %s op %s\n", newTemp -> stackPos,newTemp -> varName, op1 -> value, op2 -> value);	
+		sprintf(instruction, "mov [esp + %d], ax ;%s = %s %c %s\n", newTemp -> stackPos,newTemp -> varName, op1 -> value, operator, op2 -> value);	
 		generateCode(instruction);
 		
 	
@@ -390,7 +415,7 @@ void eval_binary(void)
 }
 
 
-int verifyIfCodeNeeded(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord* dataType)
+int verifyIfCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* dataType)
 {
 	int operand1, operand2;
 	if (op1 -> type == LITERAL && op2 -> type == LITERAL)
@@ -399,7 +424,7 @@ int verifyIfCodeNeeded(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord
 		operand1 = atoi(op1 -> value);
 		operand2 = atoi(op2 -> value);
 
-
+	
 		if (operand2 == 0)
 		{	
 			if (operator == '/')
@@ -409,8 +434,10 @@ int verifyIfCodeNeeded(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord
 			}
 		}
 		getLiteralResult(op1, operator, op2, dataType, operand1, operand2);
+
 	
 		pushNewSemanticRecordDO(I_CONSTANT, op2, resultBinary);
+
 
 		return 1;
 		
@@ -430,7 +457,7 @@ int verifyIfCodeNeeded(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord
 				pushNewSemanticRecordDO(op2 -> literalType, op2, "0");
 				return 1;
 			}
-			else
+			else if (operator == '+' || operator == '-')
 			{
 				pushNewSemanticRecordDO(op1 -> literalType, op1, "");
 				return 1;
@@ -455,7 +482,7 @@ int verifyIfCodeNeeded(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord
 				pushNewSemanticRecordDO(op1 -> literalType, op1, "0");
 				return 1;
 			}
-			else
+			else if (operator == '+' || operator == '-')
 			{
 				pushNewSemanticRecordDO(op2 -> literalType, op2, "");
 				return 1;
@@ -492,7 +519,7 @@ int verifyIfCodeNeeded(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord
 	
 }
 
-void writeCodeNeeded(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord* dataType)
+void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* dataType)
 {
 	char instruction[500];
 	char instruction2[500];
@@ -625,7 +652,7 @@ void pushNewSemanticRecordDO(int literalType, DO_Data *op, char* value)
 	//printList();
 }
 
-void getLiteralResult(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord* dataType, int operand1, int operand2)
+void getLiteralResult(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* dataType, int operand1, int operand2)
 {
 	
 	
@@ -636,13 +663,14 @@ void getLiteralResult(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord*
 	//get operator
 	if (operator == '+')
 	{
-		if (dataType -> type == INT)
+		//if (dataType -> type == INT || dataType -> type == CHAR)
 			sprintf(resultBinary, "%d", operand1 + operand2);
+		
 	}
 	else if (operator == '-')
 	{
 		
-		if (dataType -> type == INT)
+		//if (dataType -> type == INT || dataType -> type == CHAR)
 			sprintf(resultBinary, "%d", operand1 - operand2);
 		
 			
@@ -650,7 +678,7 @@ void getLiteralResult(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord*
 
 	else if (operator == '*')
 	{
-		if (dataType -> type == INT)
+		//if (dataType -> type == INT || dataType -> type == CHAR)
 			sprintf(resultBinary, "%d", operand1 * operand2);	
 		
 			
@@ -659,7 +687,7 @@ void getLiteralResult(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord*
 	else if (operator == '/')
 	{
 		
-		if (dataType -> type == INT)
+		//if (dataType -> type == INT || dataType -> type == CHAR)
 			sprintf(resultBinary, "%d", operand1 / operand2);
 			
 		
@@ -667,13 +695,42 @@ void getLiteralResult(DO_Data* op1, char operator, DO_Data* op2, SemanticRecord*
 
 	else if (operator == '%')
 	{		
-		if (dataType -> type == INT)
+		//if (dataType -> type == INT || dataType -> type == CHAR)
 			sprintf(resultBinary, "%d", operand1 % operand2);
 		
 			
 	}
+	
+	else if (operator == '<')
+	{
+		//if (dataType -> type == INT || dataType -> type == CHAR)
+			sprintf(resultBinary, "%d", operand1 < operand2);
+	}
+
+	else if (operator == '>')
+	{
+		//if (dataType -> type == INT || dataType -> type == CHAR)
+			sprintf(resultBinary, "%d", operand1 > operand2);
+	}
+	
+	else if (operator == GE_OP)
+	{
+		//if (dataType -> type == INT || dataType -> type == CHAR)
+			sprintf(resultBinary, "%d", operand1 >= operand2);
+	}
+
+	else if (operator == LE_OP)
+	{
+		//if (dataType -> type == INT || dataType -> type == CHAR)
+			sprintf(resultBinary, "%d", operand1 <= operand2);
+	}
 
 	//total = result;
+}
+
+void eval_relational(void)
+{
+	
 }
 
 void process_assign(void)
@@ -682,6 +739,7 @@ void process_assign(void)
 
 	int assignType;
 
+	//printList();
 	SemanticRecord* RS = getTopRecord();// value to assign (var or constant)
 	DO_Data* dataObject = (DO_Data*) RS -> dataBlock;
 	popRecordWithoutDataBlock();
@@ -692,13 +750,15 @@ void process_assign(void)
 
 	RS = getTopRecord(); // var to assign
 
+
 	
 
 	char instruction[100];
 	int stack;
 	char* nameID;
 
-	if(assignType != '='){
+	if(assignType != '=')
+	{
 
 		complexAssign(assignType, dataObject);
 		RS = getTopRecord();
@@ -746,7 +806,26 @@ void process_assign(void)
 	
 	free(dataObject);
 
+	
+	if (pendingOP == TRUE)
+	{
+		pendingOP = FALSE;
+		if (unaryOP = INC_OP)
+			sprintf(instruction, "addConstant %d, 1", unaryID -> stackPos);
+		
+		else if (unaryOP == DEC_OP)
+			sprintf(instruction, "subConstantRight %d, 1", unaryID -> stackPos);
+
+		generateCode(instruction);
+
+		sprintf(instruction, "mov [esp + %d], eax", unaryID -> stackPos);
+
+		generateCode(instruction);
+	}
+
+
 }
+
 
 void complexAssign(int assignType, DO_Data* temp)
 {
@@ -838,7 +917,7 @@ void start_function(void)
 
 	generateCode(instruction);
 
-	appendSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, FUNCTION, 0);
+	pushSymbol(RS -> currentToken, RS -> line, RS -> column, RS -> cursorPosi, FUNCTION, 0);
 
 	actualFunction = RS -> currentToken;
 
@@ -899,30 +978,55 @@ void generateCode(char *instruction)
 }
 
 
-void initializeOutputFile(void)
+void eval_unary(void)
 {
+	SemanticRecord* RS = getTopRecord();
+	DO_Data* id;
 
-	assembly = fopen("assembly.asm", "w");
-
-	fprintf(assembly, "%s\n", addIDs);
-	fprintf(assembly, "%s\n", subIDs);
-	fprintf(assembly, "%s\n", mulIDs);
-	fprintf(assembly, "%s\n", divIDs);
-	fprintf(assembly, "%s\n", modIDs);
-	fprintf(assembly, "%s\n", assignConstant);
-	fprintf(assembly, "%s\n", assignID);
-	fprintf(assembly, "%s\n", addConstant);
-	fprintf(assembly, "%s\n", subConstantLeft);
-	fprintf(assembly, "%s\n", subConstantRight);
-	fprintf(assembly, "%s\n", mulConstant);
-	fprintf(assembly, "%s\n", divConstantUp);
-	fprintf(assembly, "%s\n", divConstantDown);
-	fprintf(assembly, "%s\n", modConstantUp);
-	fprintf(assembly, "%s\n", modConstantDown);
+	int operator;
 	
+	if (RS -> kind == OPERATOR)
+	{
+		operator = RS -> type;
+		popRecord(); RS = getTopRecord();
+		id = (DO_Data*) RS -> dataBlock;
+		unaryID = id;
+		unaryOP = operator;
+
+		pendingOP = TRUE;
+		
+	}
+	else
+	{
+		char instruction[100];
+		id = (DO_Data*) RS -> dataBlock;
+		popRecordWithoutDataBlock(); RS = getTopRecord();
+		operator = RS -> type;
+		popRecord();
+		RS = createSemanticRecord(DATAOBJECT);
+		RS -> dataBlock = id;
+		RS -> stackPos = id -> stackPos;
+		strcpy(RS -> currentToken, id -> varName);
+		pushRecord(RS);
+		RS -> type = ID;
+		RS -> line = id -> line;
+		RS -> column = id -> column;
+		RS -> cursorPosi = id -> cursorPosi;
+
+		if (operator == INC_OP)
+			sprintf(instruction, "addConstant %d, 1", id -> stackPos);
+		else if (operator == DEC_OP)
+			sprintf(instruction, "subConstantRight %d, 1", id -> stackPos);
+
+		generateCode(instruction);
+	
+		sprintf(instruction, "mov [esp + %d], eax", id -> stackPos);
+		
+		generateCode(instruction);
+
+	}
 	
 
-	fclose(assembly);
 	
 }
 
@@ -1004,6 +1108,14 @@ void end_switch(void){
 	sprintf(tempName, "%s:", data -> exitLabel);
 	generateCode(tempName);
 
+	RS = getTopRecord();
+	while (RS -> kind != DATASWITCH && RS != tailRecord)
+	{
+		popRecord();
+		RS = getTopRecord();
+	}
+	popRecord();
+
 }
 
 void create_selector(void){
@@ -1063,5 +1175,32 @@ void append_exit(void){
 	char instruction[500];
 	sprintf(instruction, "jmp %s", data -> exitLabel);
 	generateCode(instruction);
+}
+
+void initializeOutputFile(void)
+{
+
+	assembly = fopen("assembly.asm", "w");
+
+	fprintf(assembly, "%s\n", addIDs);
+	fprintf(assembly, "%s\n", subIDs);
+	fprintf(assembly, "%s\n", mulIDs);
+	fprintf(assembly, "%s\n", divIDs);
+	fprintf(assembly, "%s\n", modIDs);
+	fprintf(assembly, "%s\n", assignConstant);
+	fprintf(assembly, "%s\n", assignID);
+	fprintf(assembly, "%s\n", addConstant);
+	fprintf(assembly, "%s\n", subConstantLeft);
+	fprintf(assembly, "%s\n", subConstantRight);
+	fprintf(assembly, "%s\n", mulConstant);
+	fprintf(assembly, "%s\n", divConstantUp);
+	fprintf(assembly, "%s\n", divConstantDown);
+	fprintf(assembly, "%s\n", modConstantUp);
+	fprintf(assembly, "%s\n", modConstantDown);
+	
+	
+
+	fclose(assembly);
+	
 }
 
