@@ -112,3 +112,11 @@ assignConstant 16, 0 	;initialize constant 'l' with 0
 
 ret
 
+global f
+f:
+
+assignConstant 12, 5 	;a = 5
+
+
+ret
+

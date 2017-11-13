@@ -8,3 +8,8 @@ int main()
 	
 
 }
+
+int f()
+{
+	char a =5;
+}

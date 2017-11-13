@@ -267,14 +267,14 @@ logical_or_expression
 conditional_expression
 	: logical_or_expression 
 	| logical_or_expression '?' expression ':' conditional_expression
-	| logical_or_expression '?' error ':' conditional_expression		{ yyerrok; }
+	//| logical_or_expression '?' error ':' conditional_expression		{ yyerrok; }
 	| logical_or_expression '?' expression error conditional_expression	{ yyerrok; }
 	| logical_or_expression error expression ':' conditional_expression	{ yyerrok; }
 	;
 
 assignment_expression
 	: conditional_expression
-	| unary_expression assignment_operator assignment_expression {process_assign();}
+	| unary_expression assignment_operator assignment_expression { process_assign(); }
 	//| error assignment_operator assignment_expression			    	{ yyerrok; }//err
 //	| unary_expression error assignment_expression				    	{ yyerrok; }//err
 //	| unary_expression assignment_operator error 				    	{ yyerrok; }//err*/
@@ -524,8 +524,8 @@ pointer
 	| '*' pointer
 	| '*'
 	//| '*' error pointer					{ yyerrok; }
-	| '*' error pointer					{ yyerrok; }
-	| '*' error						{ yyerrok; }
+	//| '*' error pointer					{ yyerrok; }
+	//| '*' error						{ yyerrok; }
 	//| error type_qualifier_list				{ yyerrok; }
 	;
 
@@ -607,8 +607,8 @@ initializer
 	| '{' initializer_list ',' '}'
 	| assignment_expression
 	
-	| '{' error '}'				   	{ yyerrok; } //err
-	| '{' error ',' '}'				{ yyerrok; }
+	//| '{' error '}'				   	{ yyerrok; } //err
+	//| '{' initializer_list error '}'		{ yyerrok; }
 	| '{' initializer_list error			{ yyerrok; }
 	;
 
@@ -667,8 +667,8 @@ labeled_statement
 
 compound_statement
 	: '{' '}'
-	| '{' block_item_list '}' 
-	| '{' block_item_list error					{ yyerrok; }
+	| '{' { inContext = TRUE; pushTable(); } block_item_list '}' {inContext = FALSE;  popTable();}
+	//| '{'  error					{ yyerrok; }
 	;
 
 block_item_list
@@ -765,16 +765,16 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator { start_function(); stackPos -= 4; }  declaration_list  { inContext = TRUE; pushTable(); } compound_statement	{ end_function(); unDecleared = FALSE; inContext = FALSE; popTable(); stackPos -= 4; }
+	: declaration_specifiers declarator { start_function(); stackPos -= 4; }  declaration_list  compound_statement	{ end_function(); unDecleared = FALSE; inContext = FALSE; popTable(); stackPos -= 4; }
 
 			
 	| declaration_specifiers  declarator  
 
-		{ inContext = TRUE;  start_function(); stackPos -= 4; pushTable(); } 
+		{ start_function(); stackPos -= 4; } 
 
 		compound_statement
 	
-		{ end_function(); unDecleared = FALSE; inContext = FALSE;  popTable(); stackPos -= 4;}				
+		{ end_function(); unDecleared = FALSE;  stackPos -= 4;}				
 	;
 
 declaration_list
