@@ -24,6 +24,8 @@ void verify_id_for_Assign(void);
 void complexAssign(int assignType, DO_Data* temp);
 void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* dataType);
 void eval_unary(void);
+void writeUnaryCodeNeeded(DO_Data* op, int operator);
+int verifyIfUnaryCodeNeeded(DO_Data* op, int operator);
 
 void start_switch(void);
 void end_switch(void);

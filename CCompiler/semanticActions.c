@@ -1254,51 +1254,158 @@ void eval_unary(void)
 
 	int operator;
 	
+
 	if (RS -> kind == OPERATOR)
 	{
+		
 		operator = RS -> type;
 		popRecord(); RS = getTopRecord();
 		id = (DO_Data*) RS -> dataBlock;
-		unaryID = id;
-		unaryOP = operator;
 
-		pendingOP = TRUE;
+		if (id -> type != LITERAL)
+		{
+			unaryID = id;
+			unaryOP = operator;
+
+
+			pendingOP = TRUE;
+		}
+		else
+		{
+			char error[100];
+			sprintf(error, "semantic error, lvalue required as increment operand");
+			yyerror(error);
+		}
 		
 	}
 	else
 	{
-		char instruction[100];
+		
 		id = (DO_Data*) RS -> dataBlock;
 		popRecordWithoutDataBlock(); RS = getTopRecord();
 		operator = RS -> type;
 		popRecord();
-		RS = createSemanticRecord(DATAOBJECT);
-		RS -> dataBlock = id;
-		RS -> stackPos = id -> stackPos;
-		strcpy(RS -> currentToken, id -> varName);
-		pushRecord(RS);
-		RS -> type = id -> varType;
-		RS -> line = id -> line;
-		RS -> column = id -> column;
-		RS -> cursorPosi = id -> cursorPosi;
 
-		if (operator == INC_OP)
-			sprintf(instruction, "addConstant %d, 1", id -> stackPos);
-		else if (operator == DEC_OP)
-			sprintf(instruction, "subConstantRight %d, 1", id -> stackPos);
+		if (operator == INC_OP || operator == DEC_OP)
+		{
+			char instruction[100];
 
-		generateCode(instruction);
+			if (id -> type != LITERAL)
+			{
+				RS = createSemanticRecord(DATAOBJECT);
+				RS -> dataBlock = id;
+				RS -> stackPos = id -> stackPos;
+				strcpy(RS -> currentToken, id -> varName);
+				pushRecord(RS);
+				RS -> type = id -> varType;
+				RS -> line = id -> line;
+				RS -> column = id -> column;
+				RS -> cursorPosi = id -> cursorPosi;
+
+				if (operator == INC_OP)
+					sprintf(instruction, "addConstant %d, 1", id -> stackPos);
+				else if (operator == DEC_OP)
+					sprintf(instruction, "subConstantRight %d, 1", id -> stackPos);
+
+				generateCode(instruction);
 	
-		sprintf(instruction, "mov [esp + %d], eax \t; id(++|--)", id -> stackPos);
+				sprintf(instruction, "mov [esp + %d], ax \t; id(++|--)", id -> stackPos);
 		
-		generateCode(instruction);
+				generateCode(instruction);
+			}
+			else
+			{
+				char error[100];
+				sprintf(error, "semantic error, lvalue required as increment operand");
+				yyerror(error);
+			}
+		}
+		else if (!verifyIfUnaryCodeNeeded(id, operator))
+		{
+			char instruction[500];
+			char tempName[100];
+			sprintf(tempName, "temp%d", tempNumber);
+			tempNumber++;
+		
+			
+			RS = createSemanticRecord(DATAOBJECT);
+			DO_Data* newTemp = (DO_Data*) RS -> dataBlock;
+			newTemp -> type = TEMP;
+			newTemp -> varType = INT;		//beacuse just integers
+			strcpy(newTemp -> varName, tempName);
+			newTemp -> stackPos = stackPos;
+			RS -> stackPos = stackPos;
+	
+			stackPos += 4;
+
+			strcpy(RS -> currentToken, tempName);
+			RS -> type = TEMP;
+
+			pushRecord(RS);
+
+		
+
+			writeUnaryCodeNeeded(id, operator);
+
+			sprintf(instruction, "mov [esp + %d], ax \t;%s = (!|~) %s\n", 
+				newTemp -> stackPos,newTemp -> varName, id -> value);	
+			generateCode(instruction);
+		}
 
 	}
 	
-
 	
 }
 
+void writeUnaryCodeNeeded(DO_Data* op, int operator)
+{
+	char instruction[100];
+	if (operator == '!')
+	{
+		sprintf(instruction, "mov eax, [esp + %d]", op -> stackPos);
+		generateCode(instruction);
+
+		sprintf(instruction, "\ncmp eax, 0\njnz unaryLabel%d \t;if == 0 -> 1 : jmp and assign 0\n", compareLabel);
+		generateCode(instruction);
+
+		sprintf(instruction, "mov eax, 1\njmp exitUnary%d", compareLabel);
+		generateCode(instruction);
+		
+		sprintf(instruction, "unaryLabel%d:\nmov eax, 0 \t; != 0 -> 1\n\n", compareLabel);
+		generateCode(instruction);
+
+		sprintf(instruction, "exitUnary%d:", compareLabel);
+		generateCode(instruction);
+
+		compareLabel++;
+	}
+	else if (operator == '~')
+	{
+		sprintf(instruction, "mov eax, [esp + %d]\nnot eax", op -> stackPos);
+		generateCode(instruction);
+	}
+}
+
+int verifyIfUnaryCodeNeeded(DO_Data* op, int operator)
+{
+	if (op -> type == LITERAL)
+	{
+		int operand = atoi(op -> value);
+		if (operator == '!')
+		{
+			sprintf(resultBinary, "%d", !operand);
+			pushNewSemanticRecordDO(I_CONSTANT, op, resultBinary);
+		}
+		else if (operator == '~')
+		{
+
+			sprintf(resultBinary, "%d", ~operand);
+			pushNewSemanticRecordDO(I_CONSTANT, op, resultBinary);
+		}
+		return 1;
+	}
+	return 0;
+}
 void start_switch(void){
 	//create record
 	SWITCH_Data *data; 

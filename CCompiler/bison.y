@@ -156,7 +156,7 @@ unary_expression
 	: postfix_expression
 	| INC_OP { save_op(); } unary_expression						{ eval_unary(); }
 	| DEC_OP { save_op(); } unary_expression						{ eval_unary(); }
-	| unary_operator cast_expression
+	| unary_operator cast_expression							{ eval_unary(); }
 	| SIZEOF unary_expression
 	| SIZEOF '(' type_name ')'
 	| ALIGNOF '(' type_name ')'
@@ -171,8 +171,8 @@ unary_operator
 	| '*'
 	| '+'
 	| '-'
-	| '~'
-	| '!'
+	| '~' { save_op(); }
+	| '!' { save_op(); }
 	;
 
 cast_expression
@@ -659,7 +659,7 @@ labeled_statement
 	| DEFAULT { create_default(); } ':' statement { append_exit(); }	
 
 	| IDENTIFIER ':' error						{ yyerrok; }
-	| CASE error   statement					{ yyerrok; }
+	| CASE constant_expression error statement			{ yyerrok; }
 	| DEFAULT error statement					{ yyerrok; }
 	//| CASE constant_expression ':' error				{ yyerrok; }
 	//| DEFAULT ':' error						{ yyerrok; }

@@ -3,13 +3,12 @@ int r = 0, v = 0;
 int main()
 {
 				
-			v = r == 5;
-			int l;
+			v = !5;
 	
 
 }
 
 int f()
 {
-	char a =5;
+	int a = v;
 }
