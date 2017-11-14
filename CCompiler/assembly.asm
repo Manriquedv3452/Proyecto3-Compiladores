@@ -31,12 +31,12 @@
 
 %macro assignConstant 2
 	mov eax, %2
-	mov [esp + %1], ax
+	mov [esp + %1], eax
 %endmacro
 
 %macro assignID 2
 	mov eax, [esp + %2]
-	mov [esp + %1], ax
+	mov [esp + %1], eax
 	%endmacro
 
 %macro addConstant 2
@@ -45,13 +45,15 @@
 %endmacro
 
 %macro subConstantLeft 2
-	mov eax, %1	mov ecx, [esp + %2]
+	mov eax, %1
+	mov ecx, [esp + %2]
 	add eax, ecx
 %endmacro
 
 %macro subConstantRight 2
 	mov eax, [esp + %1]
-	mov ecx, %2	add eax, ecx
+	mov ecx, %2
+	add eax, ecx
 %endmacro
 
 %macro mulConstant 2
@@ -86,23 +88,34 @@
 	mov eax, edx
 %endmacro
 
-assignConstant 4, 0 	;r = 0
-
-assignConstant 8, 0 	;v = 0
+%macro write 2
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, %1
+	mov edx, %2
+	int 0x80
+%endmacro
 
 global main
 main:
 
-assignConstant 8, 0 	;v = 0
+	assignConstant 4, 0 	;i = 0
+
+	mov eax, [esp + 4]
+
+	cmp eax, 5
+	jae compL0 	;compare i < 5, jmp if false
+	mov eax, 1
+	jmp exitComp0
+
+compL0:
+	mov eax, 0
+
+exitComp0:
+	mov [esp + 8], eax 	;temp0 = i op 5
 
 
-ret
 
-global f
-f:
-
-assignID 8, 8  	;a = v
-
-
-ret
+	mov eax, 1
+	int 0x80
 

@@ -34,7 +34,7 @@ extern int previousTokenCode;
 int errorFound = FALSE;
 int inContext = FALSE;
 int unDecleared = FALSE;
-char* actualFunction;
+char* actualFunction = "";
 
 
 %}
@@ -103,7 +103,7 @@ generic_assoc_list
 	: generic_association
 	| generic_assoc_list ',' generic_association
 	//| error ',' generic_association						{ yyerrok; }
-	| generic_assoc_list ',' error						{ yyerrok; }
+	| generic_assoc_list error generic_association						{ yyerrok; }
 	;
 
 generic_association
@@ -137,7 +137,7 @@ postfix_expression
 	
 	| postfix_expression '(' argument_expression_list error			{ yyerrok; }
 	| postfix_expression '[' expression error				{ yyerrok; }
-	| '(' type_name error '{' 			{ yyerrok; }
+	| '(' type_name error '{'			{ yyerrok; }
 	//| postfix_expression '(' error						{ yyerrok; }
 	//| error '(' argument_expression_list					{ yyerrok; }
 	//| error INC_OP								{ yyerrok; }
@@ -249,19 +249,21 @@ exclusive_or_expression
 inclusive_or_expression
 	: exclusive_or_expression
 	| inclusive_or_expression '|' exclusive_or_expression
-	| inclusive_or_expression '|' error					{ yyerrok; }
+	| inclusive_or_expression error exclusive_or_expression		{ yyerrok; }
 	;
 
 logical_and_expression
 	: inclusive_or_expression
 	| logical_and_expression AND_OP inclusive_or_expression
-	| logical_and_expression AND_OP error					{ yyerrok; }
+	| logical_and_expression error inclusive_or_expression			{ yyerrok; }
+	//| logical_and_expression AND_OP error					{ yyerrok; }
 	;
 
 logical_or_expression
 	: logical_and_expression
 	| logical_or_expression OR_OP logical_and_expression
-	| logical_or_expression OR_OP error 					{ yyerrok; }
+	| logical_or_expression error logical_and_expression			{ yyerrok; }
+	//| logical_or_expression OR_OP error 					{ yyerrok; }
 	;
 
 conditional_expression
@@ -298,7 +300,7 @@ expression
 	: assignment_expression
 	| expression ',' assignment_expression		
 	//| error ',' assignment_expression		    		{ yyerrok; }//err
-	| expression ',' error						{ yyerrok; } 
+	//| expression ',' error						{ yyerrok; } 
 	| expression error assignment_expression			{ yyerrok; }   
 	;
 
@@ -683,19 +685,19 @@ block_item
 
 expression_statement
 	: ';'
-	| expression ';' 
+	| expression ';' 		{ popRecord(); }
 	//| error ';'		       { yyerrok; }//err
 	| expression error 		{  yyerrok; }
 	;
 
 selection_statement
-	: IF '(' expression ')' statement ELSE statement
-	| IF '(' expression ')' statement
+	: IF  '(' expression ')' { start_if(); } statement else_statement { end_if(); }
 	| SWITCH { start_switch(); } '(' expression ')' { save_comparator(); } statement { end_switch(); }
 
 	//| IF '(' error ')' statement ELSE statement							{ yyerrok; }
-	| IF error expression 										{ yyerrok; }
-	| IF '(' expression error									{ yyerrok; }
+	| IF error expression ')' statement else_statement						{ yyerrok; }
+	| IF '(' expression error statement else_statement						{ yyerrok; }
+	| SWITCH error expression ')' statement								{ yyerrok; }
 	//| IF '(' expression ')' error ELSE statement							{ yyerrok; }
 	//| IF '(' expression ')' statement ELSE error							{ yyerrok; }
 	//| IF '(' error ')' statement									{ yyerrok; }
@@ -704,20 +706,23 @@ selection_statement
 	//| SWITCH '(' expression ')' error								{ yyerrok; }
 	;
 
+else_statement
+	:  //epsilon
+	| ELSE { start_else(); } statement 
+	;
+
 iteration_statement
-	: WHILE '(' expression ')' statement
+	: WHILE { start_while(); } '(' expression ')' { evaluate_expression(); } statement { exit_while(); }
 	| DO statement WHILE '(' expression ')' ';'
-	| FOR '(' expression_statement expression_statement ')' statement
-	| FOR '(' expression_statement expression_statement expression ')' statement
-	| FOR '(' declaration expression_statement ')' statement
-	| FOR '(' declaration expression_statement expression ')' statement
+	| FOR '(' expression_statement expression_statement for_prime  //for_prime rule
+	| FOR '(' declaration { /*begin_for();*/ } expression_statement {/*something*/ } for_prime //for_prime rule
 	
 
 
 	//| WHILE '(' error ')' statement									{ yyerrok; }
 	//| WHILE '(' expression ')' error								{ yyerrok; }
-	| WHILE '(' expression error statement								{ yyerrok; }
-	| WHILE error expression ')' statement								{ yyerrok; }
+	//| WHILE '(' expression error statement								{ yyerrok; }
+	//| WHILE error expression ')' statement								{ yyerrok; }
 
 	//| DO error WHILE '(' expression ')' ';'								{ yyerrok; }
 	//| DO statement WHILE '(' error ')' ';'								{ yyerrok; }
@@ -736,9 +741,15 @@ iteration_statement
 	//| FOR '(' expression_statement expression_statement error statement   				{ yyerrok; }
 	//| FOR '(' declaration expression_statement error ')' statement					{ yyerrok; }
 	//| FOR '(' declaration expression_statement expression ')' error					{ yyerrok; }	
-	| FOR '(' declaration expression_statement expression error statement		    		{ yyerrok; }
-	| FOR error declaration expression_statement expression ')' statement				{ yyerrok; }
-	;		
+	//| FOR '(' declaration expression_statement expression error statement		    		{ yyerrok; }
+	//| FOR error declaration expression_statement expression ')' statement				{ yyerrok; }
+	;
+		
+for_prime
+	: ')' statement
+	| expression ')' {/*something*/} statement {/*somthing*/}
+	;
+
 
 jump_statement
 	: GOTO IDENTIFIER ';'

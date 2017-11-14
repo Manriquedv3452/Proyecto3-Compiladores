@@ -26,6 +26,12 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 void eval_unary(void);
 void writeUnaryCodeNeeded(DO_Data* op, int operator);
 int verifyIfUnaryCodeNeeded(DO_Data* op, int operator);
+void start_if(void);
+void start_else(void);
+void end_if(void);
+void start_while(void);
+void exit_while(void);
+void evaluate_expression(void);
 
 void start_switch(void);
 void end_switch(void);

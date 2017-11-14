@@ -23,12 +23,31 @@ main:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	movl	v(%rip), %edx
+	movl	v(%rip), %eax
+	testl	%eax, %eax
+	je	.L2
+	movl	$5, -12(%rbp)
 	movl	r(%rip), %eax
-	cmpl	%eax, %edx
-	setl	%al
-	movzbl	%al, %eax
-	movl	%eax, -4(%rbp)
+	testl	%eax, %eax
+	je	.L3
+	addl	$1, -12(%rbp)
+	cmpl	$0, -12(%rbp)
+	je	.L4
+	addl	$1, -12(%rbp)
+	jmp	.L6
+.L4:
+	subl	$1, -12(%rbp)
+	jmp	.L6
+.L3:
+	movl	r(%rip), %eax
+	subl	$1, %eax
+	movl	%eax, r(%rip)
+.L6:
+	movl	$8, -8(%rbp)
+	jmp	.L7
+.L2:
+	movl	$4, -4(%rbp)
+.L7:
 	movl	$0, %eax
 	popq	%rbp
 	.cfi_def_cfa 7, 8
