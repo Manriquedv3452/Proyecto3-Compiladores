@@ -15,13 +15,15 @@ int tempNumber = 0;
 int compareLabel = 0;
 int ifLabel = 0;
 int whileLabel = 0;
+int doWhileLabel = 0;
 int forLabel = 0;
-char instruction[500];
-int inTempFile = FALSE;
 
+char instruction[500];
 
 int pendingOP = FALSE;
 int haveElse = FALSE;
+int inTempFile = FALSE;
+
 DO_Data* unaryID;
 int unaryOP;
 
@@ -45,7 +47,7 @@ void initializeID (void)
 {
 	SemanticRecord* RS = getTopRecord();
 	
-	sprintf(instruction, "assignConstant %d, 0 \t;initialize constant '%s' with 0", RS -> stackPos, RS -> currentToken);
+	sprintf(instruction, "\tassignConstant %d, 0 \t;initialize constant '%s' with 0", RS -> stackPos, RS -> currentToken);
 	generateCode(instruction);
 }
 
@@ -1316,9 +1318,9 @@ void eval_unary(void)
 				RS -> cursorPosi = id -> cursorPosi;
 
 				if (operator == INC_OP)
-					sprintf(instruction, "addConstant %d, 1", id -> stackPos);
+					sprintf(instruction, "\taddConstant %d, 1", id -> stackPos);
 				else if (operator == DEC_OP)
-					sprintf(instruction, "subConstantRight %d, 1", id -> stackPos);
+					sprintf(instruction, "\tsubConstantRight %d, 1", id -> stackPos);
 
 				generateCode(instruction);
 	
@@ -1447,7 +1449,7 @@ void start_switch(void){
 	pushRecord(RS);
 
 	//asm
-	sprintf(instruction, "\njmp %s", tempName);
+	sprintf(instruction, "\n\tjmp %s", tempName);
 	generateCode(instruction);
 	return;
 }
@@ -1482,10 +1484,13 @@ void end_switch(void){
 	
 	for(int i = 0; i < data -> labelIndex; i++){
 		if(strstr(data -> labels[i], "default") != NULL){
-			sprintf(instruction, "\tjmp %s\n", data -> labels[i]);
+			sprintf(instruction, "compcase%d:\n\tjmp %s\n", tempNumber - 1, data -> labels[i]);
 			generateCode(instruction);
 			break;
 		}
+		sprintf(instruction, "\ncomp%s:", data -> labels[i]);
+		generateCode(instruction);		
+
 		sprintf(tempName, "\tcmp eax, %s", data -> cases[i]);
 		generateCode(tempName);
 
@@ -1520,10 +1525,9 @@ void begin_case(void){
 
 
 	//save label name	
-
 	char tempName[100];
-	sprintf(tempName, "label%d", tempNumber);
-	tempNumber++;
+	sprintf(tempName, "case%d", tempNumber);
+	
 	strcpy(data -> cases[data->labelIndex], constant -> currentToken);
 	strcpy(data -> labels[data->labelIndex], tempName);
 	
@@ -1533,6 +1537,32 @@ void begin_case(void){
 	generateCode(instruction);
 	
 	data->labelIndex++;
+
+	RS = createSemanticRecord(DATACASE);
+	strcpy(RS -> currentToken, "case");
+	RS -> type = DATACASE;	
+
+	CASE_Data* caseObj = (CASE_Data*) RS -> dataBlock;
+	strcpy(caseObj -> caseCodeLabel, tempName);
+
+	sprintf(tempName, "compcase%d", tempNumber + 1);
+	strcpy(caseObj -> caseEndLabel, tempName);
+	
+	pushRecord(RS);
+	tempNumber++;
+
+	
+}
+
+void end_case(void)
+{
+	SemanticRecord* RS = getTopRecord();
+	CASE_Data* caseObj = (CASE_Data*) RS -> dataBlock;
+
+	sprintf(instruction, "\tjmp %s", caseObj -> caseEndLabel);
+	generateCode(instruction);
+
+	popRecord();
 }
 
 void create_default(void){
@@ -1655,7 +1685,6 @@ void start_while(void)
 	RS -> column = previousColumn;
 	RS -> cursorPosi = cursorPos;
 	whileObj-> indexLabel = whileLabel;
-
 	sprintf(labelName, "exitWhile%d", whileLabel);
 	strcpy(whileObj -> exitLabel, labelName);
 
@@ -1672,10 +1701,12 @@ void start_while(void)
 void evaluate_expression(void)
 {
 	SemanticRecord* RS = getTopRecord();
-	WHILE_Data* whileObj;
-	FOR_Data* forObj;
 	DO_Data* object = (DO_Data*) RS -> dataBlock;
+	WHILE_Data* whileObj;
+	DOWHILE_Data* doWhileObj;
+	FOR_Data* forObj;
 	popRecordWithoutDataBlock();
+
 	
 
 	if (object -> type == LITERAL)
@@ -1690,16 +1721,22 @@ void evaluate_expression(void)
 	}
 
 	RS = getTopRecord();
-
-	if(RS -> kind == DATAWHILE){
+	if (RS -> kind == DATAWHILE)
+	{
 		whileObj = (WHILE_Data*) RS -> dataBlock;
 		sprintf(instruction, "\n\tcmp eax, 0\n\tjz %s\n", whileObj -> exitLabel);
-
 	}
-	else{
+	
+	else if (RS -> kind == DATADOWHILE)
+	{
+		doWhileObj = (DOWHILE_Data*) RS -> dataBlock;
+		sprintf(instruction, "\n\tcmp eax, 0\n\tjz %s\n", doWhileObj -> exitLabel);
+	}
+
+	else
+	{
 		forObj = (FOR_Data*) RS -> dataBlock;
 		sprintf(instruction, "\n\tcmp eax, 0\n\tjz %s\n", forObj -> exitLabel);
-
 	}
 
 	generateCode(instruction);
@@ -1714,6 +1751,48 @@ void exit_while(void)
 	generateCode(instruction);
 
 	sprintf(instruction, "\n%s:", whileObj -> exitLabel);
+	generateCode(instruction);
+
+	popRecord();
+}
+
+void start_doWhile(void)
+{
+	char tempName[100];
+	SemanticRecord* RS = createSemanticRecord(DATADOWHILE);
+	strcpy(RS -> currentToken, "do");
+	RS -> line = yylineno;
+	RS -> column = previousColumn;
+	RS -> cursorPosi = cursorPos;
+	RS -> type = DATADOWHILE;
+
+
+	DOWHILE_Data* doWhileObj = (DOWHILE_Data*) RS -> dataBlock;
+
+	sprintf(tempName, "beginDoWhile%d", doWhileLabel);
+	strcpy(doWhileObj -> entryLabel, tempName);
+
+	sprintf(tempName, "exitDoWhile%d", doWhileLabel);
+	strcpy(doWhileObj -> exitLabel, tempName);	
+
+	doWhileObj -> labelIndex = doWhileLabel;
+
+	doWhileLabel++;
+	pushRecord(RS);
+
+	sprintf(instruction, "\n%s:", doWhileObj -> entryLabel);
+	generateCode(instruction);
+}
+
+void exit_doWhile(void)
+{
+	SemanticRecord* RS = getTopRecord();
+	DOWHILE_Data* doWhileObj = (DOWHILE_Data*) RS -> dataBlock;
+
+	sprintf(instruction, "\tjmp %s", doWhileObj -> entryLabel);
+	generateCode(instruction);
+
+	sprintf(instruction, "\n%s:", doWhileObj -> exitLabel);
 	generateCode(instruction);
 
 	popRecord();

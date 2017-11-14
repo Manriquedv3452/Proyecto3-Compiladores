@@ -47,13 +47,13 @@
 %macro subConstantLeft 2
 	mov eax, %1
 	mov ecx, [esp + %2]
-	add eax, ecx
+	sub eax, ecx
 %endmacro
 
 %macro subConstantRight 2
 	mov eax, [esp + %1]
 	mov ecx, %2
-	add eax, ecx
+	sub eax, ecx
 %endmacro
 
 %macro mulConstant 2
@@ -99,7 +99,7 @@
 global main
 main:
 
-assignConstant 4, 0 	;initialize constant 'a' with 0
+	assignConstant 4, 0 	;initialize constant 'a' with 0
 	assignConstant 8, 0 	;i = 0
 
 

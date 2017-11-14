@@ -32,6 +32,8 @@ void end_if(void);
 void start_while(void);
 void exit_while(void);
 void evaluate_expression(void);
+void start_doWhile(void);
+void exit_doWhile(void);
 
 void start_switch(void);
 void end_switch(void);
@@ -40,6 +42,7 @@ void begin_case(void);
 void create_default(void);
 void append_exit(void);
 void save_comparator(void);
+void end_case(void);
 
 void begin_for(void); 
 void redirect_code(void);  

@@ -32,9 +32,9 @@ extern int previousTokenCode;
 #define YYERROR_VERBOSE 1
 
 int errorFound = FALSE;
-int inFor = FALSE;
 int inContext = FALSE;
 int unDecleared = FALSE;
+int inFor = FALSE;
 char* actualFunction = "";
 
 
@@ -658,7 +658,7 @@ statement
 
 labeled_statement
 	: IDENTIFIER ':' statement
-	| CASE constant_expression { begin_case(); } ':' statement { /*end_case();*/}
+	| CASE constant_expression { begin_case(); } ':' statement { end_case(); }
 	| DEFAULT { create_default(); } ':' statement { append_exit(); }	
 
 	| IDENTIFIER ':' error						{ yyerrok; }
@@ -686,7 +686,7 @@ block_item
 
 expression_statement
 	: ';'
-	| expression ';' 		{ if(!inFor)popRecord(); }
+	| expression ';' 		{ if (!inFor) popRecord(); }
 	//| error ';'		       { yyerrok; }//err
 	| expression error 		{  yyerrok; }
 	;
@@ -714,9 +714,9 @@ else_statement
 
 iteration_statement
 	: WHILE { start_while(); } '(' expression ')' { evaluate_expression(); } statement { exit_while(); }
-	| DO statement WHILE '(' expression ')' ';'
-	| FOR '(' expression_statement expression_statement for_prime  //for_prime rule
-	| FOR  '(' declaration { inFor = TRUE; begin_for();  } expression_statement { evaluate_expression(); } for_prime //for_prime rule
+	| DO { start_doWhile(); } statement WHILE '(' expression ')' ';' { evaluate_expression(); exit_doWhile();}
+	| FOR '(' expression_statement { inFor = TRUE; begin_for(); } expression_statement { evaluate_expression(); } for_prime  //for_prime rule
+	| FOR '(' declaration { inFor = TRUE; begin_for(); } expression_statement { evaluate_expression(); } for_prime //for_prime rule
 	
 
 
@@ -727,9 +727,9 @@ iteration_statement
 
 	//| DO error WHILE '(' expression ')' ';'								{ yyerrok; }
 	//| DO statement WHILE '(' error ')' ';'								{ yyerrok; }
-	| DO statement WHILE '(' expression ')' error							{ yyerrok; }
-	| DO statement WHILE '(' expression error ';'							{ yyerrok; }
-	| DO statement WHILE error expression ')' ';'							{ yyerrok; }
+	//| DO statement WHILE '(' expression ')' error							{ yyerrok; }
+	//| DO statement WHILE '(' expression error ';'							{ yyerrok; }
+	//| DO statement WHILE error expression ')' ';'							{ yyerrok; }
 
 	//| FOR '(' error expression_statement ')' statement						{ yyerrok; }	    
 	//| FOR '(' error expression_statement expression ')' statement					{ yyerrok; }		    

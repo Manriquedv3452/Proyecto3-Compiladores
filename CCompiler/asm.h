@@ -75,13 +75,13 @@ char* modConstantUp = "\%macro modConstantUp 2\n"
 char* subConstantLeft = "\%macro subConstantLeft 2\n"
 			  "\tmov eax, %1\n"
 			  "\tmov ecx, [esp + %2]\n"
-			  "\tadd eax, ecx\n"
+			  "\tsub eax, ecx\n"
 			  "\%endmacro\n";
 
 char* subConstantRight = "\%macro subConstantRight 2\n"
 			  "\tmov eax, [esp + %1]\n"
 			  "\tmov ecx, %2\n"
-			  "\tadd eax, ecx\n"
+			  "\tsub eax, ecx\n"
 			  "\%endmacro\n";
 
 char* assignID = "\%macro assignID 2\n"
