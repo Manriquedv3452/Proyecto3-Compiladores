@@ -99,9 +99,12 @@
 global main
 main:
 
-	assignConstant 4, 0 	;i = 0
+assignConstant 4, 0 	;initialize constant 'a' with 0
+	assignConstant 8, 0 	;i = 0
 
-	mov eax, [esp + 4]
+
+BeginFor0:
+	mov eax, [esp + 8]
 
 	cmp eax, 5
 	jae compL0 	;compare i < 5, jmp if false
@@ -112,8 +115,20 @@ compL0:
 	mov eax, 0
 
 exitComp0:
-	mov [esp + 8], eax 	;temp0 = i op 5
+	mov [esp + 12], eax 	;temp0 = i op 5
 
+	mov eax, [esp + 12]
+
+	cmp eax, 0
+	jz ExitFor0
+
+	assignID 4, 8  	;a = i
+
+	addConstant 8, 1
+	mov [esp + 8], eax
+
+	jmp BeginFor0
+ExitFor0:
 
 
 	mov eax, 1

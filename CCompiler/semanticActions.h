@@ -41,4 +41,9 @@ void create_default(void);
 void append_exit(void);
 void save_comparator(void);
 
+void begin_for(void); 
+void redirect_code(void);  
+void restore_code(void); 
+void end_for(void); 
+
 FILE *assembly;

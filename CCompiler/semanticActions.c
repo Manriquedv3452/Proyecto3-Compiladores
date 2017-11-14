@@ -15,7 +15,10 @@ int tempNumber = 0;
 int compareLabel = 0;
 int ifLabel = 0;
 int whileLabel = 0;
+int forLabel = 0;
 char instruction[500];
+int inTempFile = FALSE;
+
 
 int pendingOP = FALSE;
 int haveElse = FALSE;
@@ -1246,9 +1249,14 @@ void call_functionNoParams(void)
 }
 void generateCode(char *instruction)
 {
+	if(inTempFile){
+		assembly = fopen("temp_for.txt", "a");
+
+	}else{
 		assembly = fopen("assembly.asm", "a");
-		fprintf(assembly, "%s\n", instruction);
-		fclose(assembly);
+	}	
+	fprintf(assembly, "%s\n", instruction);
+	fclose(assembly);
 }
 
 
@@ -1647,6 +1655,7 @@ void start_while(void)
 	RS -> column = previousColumn;
 	RS -> cursorPosi = cursorPos;
 	whileObj-> indexLabel = whileLabel;
+
 	sprintf(labelName, "exitWhile%d", whileLabel);
 	strcpy(whileObj -> exitLabel, labelName);
 
@@ -1663,12 +1672,10 @@ void start_while(void)
 void evaluate_expression(void)
 {
 	SemanticRecord* RS = getTopRecord();
+	WHILE_Data* whileObj;
+	FOR_Data* forObj;
 	DO_Data* object = (DO_Data*) RS -> dataBlock;
 	popRecordWithoutDataBlock();
-
-	RS = getTopRecord();
-	WHILE_Data* whileObj = (WHILE_Data*) RS -> dataBlock;
-
 	
 
 	if (object -> type == LITERAL)
@@ -1682,7 +1689,19 @@ void evaluate_expression(void)
 		generateCode(instruction);
 	}
 
-	sprintf(instruction, "\n\tcmp eax, 0\n\tjz %s\n", whileObj -> exitLabel);
+	RS = getTopRecord();
+
+	if(RS -> kind == DATAWHILE){
+		whileObj = (WHILE_Data*) RS -> dataBlock;
+		sprintf(instruction, "\n\tcmp eax, 0\n\tjz %s\n", whileObj -> exitLabel);
+
+	}
+	else{
+		forObj = (FOR_Data*) RS -> dataBlock;
+		sprintf(instruction, "\n\tcmp eax, 0\n\tjz %s\n", forObj -> exitLabel);
+
+	}
+
 	generateCode(instruction);
 }
 
@@ -1699,6 +1718,81 @@ void exit_while(void)
 
 	popRecord();
 }
+
+void begin_for(void){
+	pushTable();
+
+	//create record
+	FOR_Data *data; 
+	SemanticRecord *RS;
+	RS = createSemanticRecord(DATAFOR);
+	data = (FOR_Data*) RS -> dataBlock;
+
+	strcpy(RS -> currentToken, "for");
+	RS -> line = yylineno;
+	RS -> column = previousColumn;
+	RS -> cursorPosi = cursorPos;
+
+	//save 
+	char instruction[500];
+	char tempName[100];
+
+	sprintf(tempName, "ExitFor%d", forLabel);  
+	strcpy(data -> exitLabel, tempName);			
+											 
+	sprintf(tempName, "BeginFor%d", forLabel);
+	strcpy(data -> enterLabel, tempName);
+
+	sprintf(instruction, "\n%s:", data -> enterLabel);
+	generateCode(instruction);
+
+	forLabel++;
+	pushRecord(RS);
+		
+}
+
+void redirect_code(void){
+	assembly = fopen("temp_for.txt", "w");
+	inTempFile = TRUE;
+	fclose(assembly);
+} 
+
+void restore_code(void){
+	inTempFile = FALSE;
+} 
+
+void end_for(void){
+	SemanticRecord* RS = retrieveRecord(DATAFOR);
+	FOR_Data* forObj = (FOR_Data*) RS -> dataBlock;
+
+	//retrieve code from temp
+	FILE *file;
+	int c;
+	int i = 0;
+	char instruction[500];
+	file = fopen("temp_for.txt", "r");
+	
+	if (file) {
+		while ((c = getc(file)) != EOF){
+		    instruction[i] = '\0';
+		    instruction[i] =  c;
+		    i++;
+		}	
+		instruction[i] = '\0';
+
+		fclose(file);
+	}
+
+	remove("temp_for.txt");
+
+	generateCode(instruction);
+	
+	sprintf(instruction, "	jmp %s", forObj -> enterLabel);
+	generateCode(instruction);
+
+	sprintf(instruction, "%s:", forObj -> exitLabel);
+	generateCode(instruction);
+} 
 
 void initializeOutputFile(void)
 {

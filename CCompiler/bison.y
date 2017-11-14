@@ -32,6 +32,7 @@ extern int previousTokenCode;
 #define YYERROR_VERBOSE 1
 
 int errorFound = FALSE;
+int inFor = FALSE;
 int inContext = FALSE;
 int unDecleared = FALSE;
 char* actualFunction = "";
@@ -685,7 +686,7 @@ block_item
 
 expression_statement
 	: ';'
-	| expression ';' 		{ popRecord(); }
+	| expression ';' 		{ if(!inFor)popRecord(); }
 	//| error ';'		       { yyerrok; }//err
 	| expression error 		{  yyerrok; }
 	;
@@ -715,7 +716,7 @@ iteration_statement
 	: WHILE { start_while(); } '(' expression ')' { evaluate_expression(); } statement { exit_while(); }
 	| DO statement WHILE '(' expression ')' ';'
 	| FOR '(' expression_statement expression_statement for_prime  //for_prime rule
-	| FOR '(' declaration { /*begin_for();*/ } expression_statement {/*something*/ } for_prime //for_prime rule
+	| FOR  '(' declaration { inFor = TRUE; begin_for();  } expression_statement { evaluate_expression(); } for_prime //for_prime rule
 	
 
 
@@ -747,7 +748,7 @@ iteration_statement
 		
 for_prime
 	: ')' statement
-	| expression ')' {/*something*/} statement {/*somthing*/}
+	| { redirect_code(); } expression ')' { restore_code(); } statement { end_for(); }
 	;
 
 

@@ -16,7 +16,8 @@ enum dataKind
 	FUNCTION = 608,
 	DATASWITCH = 609,
 	DATAIF = 610,
-	DATAWHILE = 611
+	DATAWHILE = 611,
+	DATAFOR = 612
 };
 
 
@@ -81,6 +82,14 @@ typedef struct
 	int labelIndex;
 
 } SWITCH_Data;
+
+typedef struct
+{
+	char enterLabel[100];
+	char exitLabel[100];
+	char indexLabel;
+
+} FOR_Data;
 
 
 void initializeList(void);
