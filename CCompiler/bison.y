@@ -715,8 +715,8 @@ else_statement
 iteration_statement
 	: WHILE { start_while(); } '(' expression ')' { evaluate_expression(); } statement { exit_while(); }
 	| DO { start_doWhile(); } statement WHILE '(' expression ')' ';' { evaluate_expression(); exit_doWhile();}
-	| FOR '(' expression_statement { inFor = TRUE; begin_for(); } expression_statement { evaluate_expression(); } for_prime  //for_prime rule
-	| FOR '(' declaration { inFor = TRUE; begin_for(); } expression_statement { evaluate_expression(); } for_prime //for_prime rule
+	| FOR '(' expression_statement { inFor = TRUE; begin_for(); } expression_statement { evaluate_expression(); inFor = FALSE; } for_prime  //for_prime rule
+	| FOR '(' declaration { inFor = TRUE; begin_for(); } expression_statement { evaluate_expression(); inFor = FALSE; } for_prime //for_prime rule
 	
 
 
@@ -748,14 +748,14 @@ iteration_statement
 		
 for_prime
 	: ')' statement
-	| { redirect_code(); } expression ')' { restore_code(); } statement { end_for(); }
+	| { redirect_code(); } expression ')' { restore_code(); } statement { popRecord(); end_for();}
 	;
 
 
 jump_statement
 	: GOTO IDENTIFIER ';'
 	| CONTINUE ';'
-	| BREAK ';'
+	| BREAK ';'	{ process_break(); }
 	| RETURN ';'
 	| RETURN expression ';'		    			//err
 	| RETURN error					{ yyerrok; }

@@ -122,6 +122,7 @@ SemanticRecord* getTopRecord(void);
 void printList(void);
 void popRecordWithoutDataBlock(void);
 void clearSemanticRecords(void);
+SemanticRecord* getBreakContextRecord(void);
 
 
 SemanticRecord *headRecord = NULL;
@@ -279,6 +280,31 @@ SemanticRecord* getSemanticRecordInPos(int pos)
 		currentPos++;
 	}
 	return currentRecord;
+}
+
+SemanticRecord* getBreakContextRecord(void)
+{
+	currentRecord = headRecord -> next;
+
+	while (currentRecord != tailRecord)
+	{
+		switch (currentRecord -> kind)
+		{
+			case DATAWHILE:
+				return currentRecord;
+			
+			case DATAFOR:
+				return currentRecord;
+	
+			case DATADOWHILE:
+				return currentRecord;
+	
+			case DATASWITCH:
+				return currentRecord;
+		}
+
+		currentRecord = currentRecord -> next;
+	}
 }
 
 int searhErrorToken(char *token)

@@ -16,6 +16,7 @@ int compareLabel = 0;
 int ifLabel = 0;
 int whileLabel = 0;
 int doWhileLabel = 0;
+int switchNumber = 0;
 int forLabel = 0;
 
 char instruction[500];
@@ -40,7 +41,6 @@ void save_type(void)
 	
 	pushRecord(RS);
 	//printf("%s\n", RS -> currentToken);
-	//printList();
 }
 
 void initializeID (void)
@@ -76,7 +76,6 @@ void save_id(void)
 			stackPos += 4;
 
 			pushRecord(RS);
-			//printList();
 		}
 	} 
 	else if (pos == -1)
@@ -98,7 +97,7 @@ void save_id(void)
 			stackPos += 4;
 	
 			pushRecord(RS);
-			//printList();
+		
 		}
 		else
 		{
@@ -127,7 +126,7 @@ void save_id(void)
 
 void declaration_end(void)
 {
-	//printList();
+
 	char* tokenValue;
 	char* tokenName;
 
@@ -524,7 +523,6 @@ int verifyIfCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord*
 
 void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* dataType)
 {
-	char instruction2[500];
 	if (op1 -> type == LITERAL && op2 -> type == LITERAL)
 	{
 
@@ -672,7 +670,7 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 		}
 		else if (operator == '*')
 		{
-			sprintf(instruction, "\tmulConstant %d, %s   \t;%s * %s", op1 -> stackPos, op2 -> value, op1 -> value, op2 -> value);
+			sprintf(instruction, "\tmulConstant %d, %s   \t;%s * %s", op2 -> stackPos, op1 -> value, op1 -> value, op2 -> value);
 		}
 		else if (operator == '<')
 		{
@@ -916,7 +914,6 @@ void pushNewSemanticRecordDO(int literalType, DO_Data *op, char* value)
 		
 	newSemanticRecord -> dataBlock = newDataObject;
 	pushRecord(newSemanticRecord);
-	//printList();
 }
 
 void getLiteralResult(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* dataType, int operand1, int operand2)
@@ -1010,7 +1007,6 @@ void process_assign(void)
 
 	int assignType;
 
-	//printList();
 	SemanticRecord* RS = getTopRecord();// value to assign (var or constant)
 	DO_Data* dataObject = (DO_Data*) RS -> dataBlock;
 	popRecordWithoutDataBlock();
@@ -1024,7 +1020,6 @@ void process_assign(void)
 
 	
 
-	char instruction[100];
 	int stack;
 	char* nameID;
 
@@ -1439,13 +1434,13 @@ void start_switch(void){
 	
 	char tempName[100];
 
-	sprintf(tempName, "exit%d", tempNumber);
+	sprintf(tempName, "exit%d", switchNumber);
 	strcpy(data -> exitLabel, tempName);
 
-	sprintf(tempName, "selector%d", tempNumber);
+	sprintf(tempName, "selector%d", switchNumber);
 	strcpy(data -> enterLabel, tempName);
 
-	tempNumber++;
+	switchNumber++;
 	pushRecord(RS);
 
 	//asm
@@ -1484,7 +1479,7 @@ void end_switch(void){
 	
 	for(int i = 0; i < data -> labelIndex; i++){
 		if(strstr(data -> labels[i], "default") != NULL){
-			sprintf(instruction, "compcase%d:\n\tjmp %s\n", tempNumber - 1, data -> labels[i]);
+			sprintf(instruction, "compcase%d:\n\tjmp %s\n", switchNumber - 1, data -> labels[i]);
 			generateCode(instruction);
 			break;
 		}
@@ -1526,7 +1521,7 @@ void begin_case(void){
 
 	//save label name	
 	char tempName[100];
-	sprintf(tempName, "case%d", tempNumber);
+	sprintf(tempName, "case%d", switchNumber);
 	
 	strcpy(data -> cases[data->labelIndex], constant -> currentToken);
 	strcpy(data -> labels[data->labelIndex], tempName);
@@ -1545,11 +1540,11 @@ void begin_case(void){
 	CASE_Data* caseObj = (CASE_Data*) RS -> dataBlock;
 	strcpy(caseObj -> caseCodeLabel, tempName);
 
-	sprintf(tempName, "compcase%d", tempNumber + 1);
+	sprintf(tempName, "compcase%d", switchNumber + 1);
 	strcpy(caseObj -> caseEndLabel, tempName);
 	
 	pushRecord(RS);
-	tempNumber++;
+	switchNumber++;
 
 	
 }
@@ -1573,8 +1568,8 @@ void create_default(void){
 
 	char tempName[100];
 	
-	sprintf(tempName, "default%d", tempNumber);
-	tempNumber++;
+	sprintf(tempName, "default%d", switchNumber);
+	switchNumber++;
 
 	//save default
 	strcpy(data -> labels[data->labelIndex], tempName);
@@ -1617,7 +1612,7 @@ void start_if(void)
 	
 	
 	char labelName[100];
-	sprintf(labelName, ".L%d", ifLabel);
+	sprintf(labelName, "L%d", ifLabel);
 	strcpy(ifs -> exitLabel,  labelName);
 
 	ifs -> indexLabel = ifLabel;
@@ -1636,7 +1631,7 @@ void start_if(void)
 		sprintf(instruction, "\tmov eax, [esp + %d]", object -> stackPos);
 		generateCode(instruction);
 	}
-	sprintf(instruction, "\n\n\tcmp eax, 0\n\tjz .L%d\n", ifLabel);
+	sprintf(instruction, "\n\n\tcmp eax, 0\n\tjz L%d\n", ifLabel);
 	generateCode(instruction);
 
 	free(object);
@@ -1650,7 +1645,7 @@ void start_else(void)
 
 	ifs -> haveElse = 1; //true
 
-	sprintf(instruction, "\tjmp .L%d\n.L%d:", (ifs -> indexLabel) - 1, ifs -> indexLabel);
+	sprintf(instruction, "\tjmp L%d\nL%d:", (ifs -> indexLabel) - 1, ifs -> indexLabel);
 	generateCode(instruction);
 }
 
@@ -1660,10 +1655,10 @@ void end_if(void)
 	IF_Data* ifs = (IF_Data*) RS -> dataBlock;
 
 	if (ifs -> haveElse)
-		sprintf(instruction, ".L%d:", (ifs -> indexLabel) - 1);	
+		sprintf(instruction, "L%d:", (ifs -> indexLabel) - 1);	
 	
 	else
-		sprintf(instruction, ".L%d:", ifs -> indexLabel);
+		sprintf(instruction, "L%d:", ifs -> indexLabel);
 		
 	generateCode(instruction);
 
@@ -1813,7 +1808,6 @@ void begin_for(void){
 	RS -> cursorPosi = cursorPos;
 
 	//save 
-	char instruction[500];
 	char tempName[100];
 
 	sprintf(tempName, "ExitFor%d", forLabel);  
@@ -1825,7 +1819,10 @@ void begin_for(void){
 	sprintf(instruction, "\n%s:", data -> enterLabel);
 	generateCode(instruction);
 
-	forLabel++;
+	data -> indexLabel = forLabel;
+
+	forLabel += 1;
+
 	pushRecord(RS);
 		
 }
@@ -1841,14 +1838,14 @@ void restore_code(void){
 } 
 
 void end_for(void){
-	SemanticRecord* RS = retrieveRecord(DATAFOR);
+	//printList();
+	SemanticRecord* RS = getTopRecord();
 	FOR_Data* forObj = (FOR_Data*) RS -> dataBlock;
 
 	//retrieve code from temp
 	FILE *file;
 	int c;
 	int i = 0;
-	char instruction[500];
 	file = fopen("temp_for.txt", "r");
 	
 	if (file) {
@@ -1860,18 +1857,64 @@ void end_for(void){
 		instruction[i] = '\0';
 
 		fclose(file);
+		//remove("temp_for.txt");
 	}
 
-	remove("temp_for.txt");
 
 	generateCode(instruction);
 	
-	sprintf(instruction, "	jmp %s", forObj -> enterLabel);
+	sprintf(instruction, "\tjmp %s", forObj -> enterLabel);
 	generateCode(instruction);
 
-	sprintf(instruction, "%s:", forObj -> exitLabel);
+	sprintf(instruction, "\n%s:", forObj -> exitLabel);
 	generateCode(instruction);
+	
+	popTable();
+	popRecord();
 } 
+
+void process_break(void)
+{
+	SemanticRecord* RS = getBreakContextRecord();
+	SWITCH_Data* switchObj;
+	WHILE_Data* whileObj;
+	DOWHILE_Data* doWhileObj;
+	FOR_Data* forObj;
+	
+	if (RS -> kind == DATASWITCH)
+	{
+		switchObj = (SWITCH_Data*) RS -> dataBlock;
+		sprintf(instruction, "\tjmp %s", switchObj -> exitLabel);
+		generateCode(instruction);
+	}
+	else if (RS -> kind == DATAWHILE)
+	{
+		whileObj = (WHILE_Data*) RS -> dataBlock;
+		sprintf(instruction, "\tjmp %s", whileObj -> exitLabel);
+		generateCode(instruction);
+	}
+
+	else if (RS -> kind == DATADOWHILE)
+	{
+		doWhileObj = (DOWHILE_Data*) RS -> dataBlock;
+		sprintf(instruction, "\tjmp %s", doWhileObj -> exitLabel);
+		generateCode(instruction);
+	}	
+
+	else if (RS -> kind == DATAFOR)
+	{
+		forObj = (FOR_Data*) RS -> dataBlock;
+		sprintf(instruction, "\tjmp %s", forObj -> exitLabel);
+		generateCode(instruction);
+	}
+		
+	else
+		yyerror("semantic error, break statement not within loop or switch");
+
+	
+
+	
+}
 
 void initializeOutputFile(void)
 {

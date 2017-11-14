@@ -8,7 +8,7 @@
 #include "parser.c"
 
 FILE *output;
-//FILE *errors;
+FILE *errors;
 FILE *file;
 
 extern void initializeOutputFile(void);
@@ -19,7 +19,7 @@ char fileName[50];
 extern void initializeList(void);
 extern void initializeTable(void);
 //extern void scanner(char* fileName);
-//#include "preprocessor/preprocessor.c"
+#include "preprocessor/preprocessor.c"
 
 
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	initializeOutputFile();
 	
 
-	/*output = freopen("temp.c", "w", stdout);
+	output = freopen("temp.c", "w", stdout);
 	fclose(output);
 	freopen("/dev/tty", "w", stdout);
 
@@ -60,10 +60,10 @@ int main(int argc, char *argv[])
 	fclose(errors);
 	freopen("/dev/tty", "w", stdout);
 	
-	process(fileName);*/
+	process(fileName);
 	
 	//Start scanning 
-	parser(fileName);//"temp.c");
+	parser("temp.c");
 	//printTOP();
 	//printf("\n\n----------------------------------GCC---------------------------------------------\n\n");
 	//system("gcc -Wpedantic temp.c");

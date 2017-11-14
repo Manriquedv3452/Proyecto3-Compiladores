@@ -264,6 +264,10 @@ SymbolTable* getSymbolInPos(int pos)
 		int currentPos = 0;
 		while (currentSymbol -> next != tailSymbol)
 		{
+			if (currentPos <= pos)
+			{
+				return currentSymbol -> next;
+			}
 			currentSymbol = currentSymbol -> next;
 			currentPos++;
 		}

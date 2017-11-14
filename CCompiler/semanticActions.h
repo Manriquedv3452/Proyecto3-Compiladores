@@ -34,6 +34,7 @@ void exit_while(void);
 void evaluate_expression(void);
 void start_doWhile(void);
 void exit_doWhile(void);
+void process_break(void);
 
 void start_switch(void);
 void end_switch(void);
