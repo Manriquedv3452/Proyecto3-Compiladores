@@ -237,32 +237,32 @@ equality_expression
 
 and_expression
 	: equality_expression
-	| and_expression '&' equality_expression
+	| and_expression '&' { save_op(); } equality_expression		{ eval_binary(); }
 	| and_expression error equality_expression			{ yyerrok; }
 	;
 
 exclusive_or_expression
 	: and_expression
-	| exclusive_or_expression '^' and_expression
+	| exclusive_or_expression '^' { save_op(); } and_expression	{ eval_binary(); }
 	| exclusive_or_expression error and_expression			{ yyerrok; }	
 	;
 
 inclusive_or_expression
 	: exclusive_or_expression
-	| inclusive_or_expression '|' exclusive_or_expression
+	| inclusive_or_expression '|' { save_op(); } exclusive_or_expression { eval_binary(); }
 	| inclusive_or_expression error exclusive_or_expression		{ yyerrok; }
 	;
 
 logical_and_expression
 	: inclusive_or_expression
-	| logical_and_expression AND_OP inclusive_or_expression
+	| logical_and_expression AND_OP { save_op(); } inclusive_or_expression  { eval_binary(); } 
 	| logical_and_expression error inclusive_or_expression			{ yyerrok; }
 	//| logical_and_expression AND_OP error					{ yyerrok; }
 	;
 
 logical_or_expression
 	: logical_and_expression
-	| logical_or_expression OR_OP logical_and_expression
+	| logical_or_expression OR_OP { save_op(); } logical_and_expression	{ eval_binary(); }
 	| logical_or_expression error logical_and_expression			{ yyerrok; }
 	//| logical_or_expression OR_OP error 					{ yyerrok; }
 	;

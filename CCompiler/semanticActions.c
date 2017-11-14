@@ -647,6 +647,60 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
 			compareLabel++;
 		}
+		else if (operator == AND_OP)
+		{
+			sprintf(instruction, "\tmov eax, [esp + %d] \t;%s \n\tmov ebx, %s \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> value,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, 
+				"\n\tcmp eax, 0\n\tjz compANDF%d\n\n\tcmp ebx, 0\n\tjz compANDF%d\n", compareLabel, compareLabel);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tmov eax, 1\n\tjmp exitCompAND%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompANDF%d:\n\tmov eax, 0\n\nexitCompAND%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == OR_OP)
+		{
+			sprintf(instruction, "\tmov eax, [esp + %d] \t;%s \n\tmov ebx, %s \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> value,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, 
+				"\n\tcmp eax, 0\n\tjnz compORT%d\n\n\tcmp ebx, 0\n\tjnz compORT%d\n", compareLabel, compareLabel);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tmov eax, 0 \n\tjmp exitCompOR%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompORT%d:\n\tmov eax, 1\n\nexitCompOR%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == '&')
+		{
+			sprintf(instruction, "\tmov eax, [esp + %d] \t;%s \n\tmov ebx, %s \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> value,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tand eax, ebx\n");
+		}
+		else if (operator == '^')
+		{
+			sprintf(instruction, "\tmov eax, [esp + %d] \t;%s \n\tmov ebx, %s \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> value,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\txor eax, ebx\n");
+		}
+		else if (operator == '|')
+		{
+			sprintf(instruction, "\tmov eax, [esp + %d] \t;%s \n\tmov ebx, %s \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> value,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tor eax, ebx\n");
+		}
 	}
 
 	else if (op1 -> type == LITERAL && op2 -> type == ID)
@@ -756,6 +810,60 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 			generateCode(instruction);
 			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
 			compareLabel++;
+		}
+		else if (operator == AND_OP)
+		{
+			sprintf(instruction, "\tmov eax, %s \t;%s \n\tmov ebx, [esp + %d] \t;%s", 
+				op1 -> value, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, 
+				"\n\tcmp eax, 0\n\tjz compANDF%d\n\n\tcmp ebx, 0\n\tjz compANDF%d\n", compareLabel, compareLabel);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tmov eax, 1\n\tjmp exitCompAND%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompANDF%d:\n\tmov eax, 0\n\nexitCompAND%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == OR_OP)
+		{
+			sprintf(instruction, "\tmov eax, %s \t;%s \n\tmov ebx, [esp + %d] \t;%s", 
+				op1 -> value, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, 
+				"\n\tcmp eax, 0\n\tjnz compORT%d\n\n\tcmp ebx, 0\n\tjnz compORT%d\n", compareLabel, compareLabel);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tmov eax, 0 \n\tjmp exitCompOR%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompORT%d:\n\tmov eax, 1\n\nexitCompOR%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == '&')
+		{
+			sprintf(instruction, "\tmov eax, %s \t;%s \n\tmov ebx, [esp + %d] \t;%s", 
+				op1 -> value, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tand eax, ebx\n");
+		}
+		else if (operator == '^')
+		{
+			sprintf(instruction, "\tmov eax, %s \t;%s \n\tmov ebx, [esp + %d] \t;%s", 
+				op1 -> value, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\txor eax, ebx\n");
+		}
+		else if (operator == '|')
+		{
+			sprintf(instruction, "\tmov eax, %s \t;%s \n\tmov ebx, [esp + %d] \t;%s", 
+				op1 -> value, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tor eax, ebx\n");
 		}
 	}
 	else
@@ -871,6 +979,60 @@ void writeCodeNeeded(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* d
 			generateCode(instruction);
 			sprintf(instruction, "\ncompL%d:\n\tmov eax, 0\n\nexitComp%d:", compareLabel, compareLabel);
 			compareLabel++;
+		}
+		else if (operator == AND_OP)
+		{
+			sprintf(instruction, "\tmov eax, [esp + %d] \t;%s \n\tmov ebx, [esp + %d] \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, 
+				"\n\tcmp eax, 0\n\tjz compANDF%d\n\n\tcmp ebx, 0\n\tjz compANDF%d\n", compareLabel, compareLabel);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tmov eax, 1\n\tjmp exitCompAND%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompANDF%d:\n\tmov eax, 0\n\nexitCompAND%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == OR_OP)
+		{
+			sprintf(instruction, "\tmov eax, [esp + %d] \t;%s \n\tmov ebx, [esp + %d] \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, 
+				"\n\tcmp eax, 0\n\tjnz compORT%d\n\n\tcmp ebx, 0\n\tjnz compORT%d\n", compareLabel, compareLabel);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tmov eax, 0 \n\tjmp exitCompOR%d", compareLabel);
+			generateCode(instruction);
+			sprintf(instruction, "\ncompORT%d:\n\tmov eax, 1\n\nexitCompOR%d:", compareLabel, compareLabel);
+			compareLabel++;
+		}
+		else if (operator == '&')
+		{
+			sprintf(instruction, "\tmov eax, [esp + %d] \t;%s \n\tmov ebx, [esp + %d] \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tand eax, ebx\n");
+		}
+		else if (operator == '^')
+		{
+			sprintf(instruction, "\tmov eax, [esp + %d] \t;%s \n\tmov ebx, [esp + %d] \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\txor eax, ebx\n");
+		}
+		else if (operator == '|')
+		{
+			sprintf(instruction, "\tmov eax, [esp + %d] \t;%s \n\tmov ebx, [esp + %d] \t;%s", 
+				op1 -> stackPos, op1 -> value, op2 -> stackPos,  op2 -> value);
+			generateCode(instruction);
+
+			sprintf(instruction, "\tor eax, ebx\n");
 		}
 	}
 	generateCode(instruction);
@@ -995,6 +1157,26 @@ void getLiteralResult(DO_Data* op1, int operator, DO_Data* op2, SemanticRecord* 
 	else if (operator == NE_OP)
 	{
 		sprintf(resultBinary, "%d", operand1 != operand2);
+	}
+	else if (operator == AND_OP)
+	{
+		sprintf(resultBinary, "%d", operand1 && operand2);
+	}
+	else if (operator == OR_OP)
+	{
+		sprintf(resultBinary, "%d", operand1 || operand2);
+	}
+	else if (operator == '&')
+	{
+		sprintf(resultBinary, "%d", operand1 & operand2);
+	}
+	else if (operator == '^')
+	{
+		sprintf(resultBinary, "%d", operand1 ^ operand2);
+	}
+	else if (operator == '|')
+	{
+		sprintf(resultBinary, "%d", operand1 | operand2);
 	}
 	//total = result;
 }
